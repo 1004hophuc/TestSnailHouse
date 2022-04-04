@@ -44,4 +44,13 @@ export class UsersService {
 
     return newData.refCode;
   }
+
+  async verifyRefCode(refCode: string): Promise<boolean> {
+    const data = await this.usersRepository.findOne({ refCode });
+    if (data) {
+      return true;
+    }
+
+    return false;
+  }
 }

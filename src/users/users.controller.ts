@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import Web3 from 'web3';
@@ -26,6 +27,14 @@ export class UsersController {
     return {
       status: 200,
       data: await this.userService.getRefCode({ address }),
+    };
+  }
+
+  @Get('/ref/:id')
+  public async verifyRefCode(@Param() params): Promise<any> {
+    return {
+      status: 200,
+      data: await this.userService.verifyRefCode(params.id),
     };
   }
 }
