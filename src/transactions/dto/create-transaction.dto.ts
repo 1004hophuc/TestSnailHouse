@@ -1,4 +1,10 @@
-import { IsNumber, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsNumber,
+  IsNotEmpty,
+  IsString,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateTransactionDto {
   @IsNotEmpty()
@@ -13,4 +19,20 @@ export class CreateTransactionDto {
 
   @IsNotEmpty()
   txHash: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isMarket = false;
+
+  @IsNumber()
+  @IsOptional()
+  level = 1;
+
+  @IsBoolean()
+  @IsOptional()
+  isOwnerCreated = false;
+
+  @IsNumber()
+  @IsOptional()
+  launchpadId = 0;
 }

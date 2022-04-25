@@ -14,8 +14,23 @@ export class TransactionsService {
   ) {}
 
   async findAll(query: QueryTransactionDto) {
+    const { page, limit, isMarket } = query;
+    console.log('isMarket:', isMarket);
+    const [data, count] = await this.transactionsRepository.findAndCount({
+      where: { isMarket: isMarket },
+
+      order: { createdAt: -1 },
+      skip: +(page - 1) * +limit,
+      take: +limit,
+    });
+    return { data, count };
+  }
+
+  async findMarketTransaction(query: QueryTransactionDto) {
     const { page, limit } = query;
     const [data, count] = await this.transactionsRepository.findAndCount({
+      where: { isMarket: true },
+
       order: { createdAt: -1 },
       skip: +(page - 1) * +limit,
       take: +limit,

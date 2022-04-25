@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsAlphanumeric } from 'class-validator';
+import { IsOptional, IsAlphanumeric } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class QueryTransactionDto {
   @IsAlphanumeric()
@@ -8,4 +9,9 @@ export class QueryTransactionDto {
   @IsAlphanumeric()
   @IsOptional()
   page?: number;
+
+  @Type((): any => Boolean())
+  @Transform(({ value }): any => Boolean(value.toString() == 'true'))
+  @IsOptional()
+  isMarket = false;
 }

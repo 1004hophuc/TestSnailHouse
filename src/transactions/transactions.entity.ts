@@ -31,6 +31,18 @@ export class Transaction {
   @Column()
   txHash: string;
 
+  @Column({ default: false, type: 'boolean' })
+  isMarket = false;
+
+  @Column()
+  level: number;
+
+  @Column({ default: 0 })
+  launchpadId: number;
+
+  @Column({ default: false })
+  isOwnerCreated: boolean;
+
   @BeforeInsert()
   nameToUpperCase() {
     this.address = this.address.toLowerCase();

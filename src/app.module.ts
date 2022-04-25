@@ -8,9 +8,7 @@ import { User } from './users/user.entity';
 import { Transaction } from './transactions/transactions.entity';
 
 import { Connection } from 'typeorm';
-import { TransactionsController } from './transactions/transactions.controller';
 import { TransactionsModule } from './transactions/transactions.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,7 +37,6 @@ import { TransactionsModule } from './transactions/transactions.module';
 })
 export class AppModule {
   constructor(private connection: Connection) {
-    console.log('\n\n\n\n\nxasasas');
     console.log('process.env.MONGO_DB: ', process.env.MONGO_DB);
 
     console.log('process.env.MONGO_USERNAME: ', process.env.MONGO_USERNAME);
