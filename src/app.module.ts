@@ -9,6 +9,9 @@ import { Transaction } from './transactions/transactions.entity';
 
 import { Connection } from 'typeorm';
 import { TransactionsModule } from './transactions/transactions.module';
+import { NftController } from './nft/nft.controller';
+import { NftService } from './nft/nft.service';
+import { NftModule } from './nft/nft.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -31,6 +34,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     }),
     UsersModule,
     TransactionsModule,
+    NftModule,
   ],
   controllers: [AppController],
   providers: [AppService],

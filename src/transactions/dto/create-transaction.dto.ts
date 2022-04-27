@@ -35,4 +35,8 @@ export class CreateTransactionDto {
   @IsNumber()
   @IsOptional()
   launchpadId = 0;
+
+  @IsNumber()
+  @IsOptional()
+  tokenId;
 }

@@ -6,16 +6,18 @@ import { Repository } from 'typeorm';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { QueryTransactionDto } from './dto/query-transaction.dto';
+
+import { NftService } from '../nft/nft.service';
 @Injectable()
 export class TransactionsService {
   constructor(
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
+    private readonly nftService: NftService,
   ) {}
 
   async findAll(query: QueryTransactionDto) {
     const { page, limit, isMarket } = query;
-    console.log('isMarket:', isMarket);
     const [data, count] = await this.transactionsRepository.findAndCount({
       where: { isMarket: isMarket },
 
@@ -41,6 +43,11 @@ export class TransactionsService {
   async createTransaction(createTransactionDto: CreateTransactionDto) {
     const item = await this.transactionsRepository.create(createTransactionDto);
     const data = await this.transactionsRepository.save(item);
+
+    if (createTransactionDto.isMarket && createTransactionDto.tokenId) {
+      await this.nftService.createMetadata(createTransactionDto.tokenId);
+    }
+
     return data;
   }
 }
