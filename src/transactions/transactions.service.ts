@@ -28,6 +28,16 @@ export class TransactionsService {
     return { data, count };
   }
 
+  async findTransMarket(query: any) {
+    const { address } = query;
+    const data = await this.transactionsRepository.findOne({
+      isMarket: true,
+      address: address.toLowerCase(),
+    });
+
+    return data;
+  }
+
   async findMarketTransaction(query: QueryTransactionDto) {
     const { page, limit } = query;
     const [data, count] = await this.transactionsRepository.findAndCount({

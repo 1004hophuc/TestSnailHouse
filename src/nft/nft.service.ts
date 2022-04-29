@@ -11,11 +11,53 @@ import { Abi as NFTAbi } from '../contract/NFT';
 
 import { NftImageService } from './nft-image.service';
 
+const levelNameMapping = (level) => {
+  switch (+level) {
+    case 1:
+      return 'Cheese';
+    case 2:
+      return 'Opener';
+    case 3:
+      return 'Wine Glass';
+
+    case 4:
+      return 'Wine Oak';
+
+    case 5:
+      return 'Romanée Conti';
+
+    default:
+      break;
+  }
+};
+
+const levelDescriptionMapping = (level) => {
+  switch (+level) {
+    case 1:
+      return `The color of the background is inspired by the label of Jonnie Walker Whisky. Cheese NFT is presented for a specialist who knows exactly what is mixed with wine will make your taste explode`;
+    case 2:
+      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Opener is presented for a wine taster who knows all about wine all over the world but gives you a taste of just what the doctor ordered';
+    case 3:
+      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Wine Glass is presented for a wine lover who knows which kinds of wine will match your emotion, be a sense friend whenever you need';
+
+    case 4:
+      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Wine Oak is presented for a cellar owner who gives all kindness to wine and makes them become their best status ever';
+
+    case 5:
+      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Romanée Conti is presented for a wine collector who is touched by wine and understands how wine is worth, collect them by all means';
+
+    default:
+      break;
+  }
+};
+
 interface Metadata {
   tokenId: number;
   tokenOwner: string;
   level: number;
   id: any;
+  name?: string;
+  description?: string;
 }
 
 @Injectable()
@@ -28,16 +70,26 @@ export class NftService {
   ) {}
 
   async getMetadata(id: string): Promise<any> {
-    const data = await this.nftRepository.findOne({ tokenId: +id });
-    if (data) {
-      delete data.id;
-      return data;
+    try {
+      const data = await this.nftRepository.findOne({ tokenId: +id });
+      if (data) {
+        data.name = levelNameMapping(data.level);
+        data.description = levelDescriptionMapping(data.level);
+
+        delete data.id;
+        return data;
+      }
+      const newData = await this.createMetadata(id);
+
+      delete newData.id;
+
+      newData.name = levelNameMapping(newData.level);
+      newData.description = levelDescriptionMapping(newData.level);
+
+      return newData;
+    } catch (e) {
+      return {};
     }
-    const newData = await this.createMetadata(id);
-
-    delete newData.id;
-
-    return newData;
   }
 
   async createMetadata(id: string, imageId?: number): Promise<Metadata> {

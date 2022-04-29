@@ -1,4 +1,4 @@
-import { Controller, Body, Post, Get, Query } from '@nestjs/common';
+import { Controller, Body, Post, Get, Query, Param } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { QueryTransactionDto } from './dto/query-transaction.dto';
 import { TransactionsService } from './transactions.service';
@@ -17,6 +17,27 @@ export class TransactionsController {
         ...data,
       };
     } catch (e) {
+      console.log('e:', e);
+
+      return {
+        status: 500,
+        message: 'Something went wrong',
+      };
+    }
+  }
+
+  @Get('/market')
+  async detail(@Query() query) {
+    try {
+      const data = await this.transactionsService.findTransMarket(query);
+
+      return {
+        status: 200,
+        ...data,
+      };
+    } catch (e) {
+      console.log('e:', e);
+
       return {
         status: 500,
         message: 'Something went wrong',

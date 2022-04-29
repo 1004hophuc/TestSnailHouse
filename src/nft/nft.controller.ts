@@ -15,10 +15,8 @@ export class NftController {
 
   @Get('/metadata/:id')
   public async getToken(@Param() params): Promise<any> {
-    return {
-      status: 200,
-      data: await this.nftService.getMetadata(params.id),
-    };
+    const data = await this.nftService.getMetadata(params.id);
+    return data;
   }
 
   @Get('/images')

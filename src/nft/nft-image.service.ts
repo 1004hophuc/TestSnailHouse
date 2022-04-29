@@ -32,6 +32,7 @@ export class NftImageService {
 
     const [data, count] = await this.nftImageRepository.findAndCount({
       where: queryWhere,
+      order: { imageId: 1 },
       skip: +(page - 1) * +limit,
       take: +limit,
     });
@@ -48,8 +49,9 @@ export class NftImageService {
 
   async initData(data: Array<any>, key: string): Promise<boolean> {
     try {
-      if (key != 'WeAreFamilymartketWinery')
-        await this.nftImageRepository.delete({});
+      if (key != 'WeAreFamilymartketWinery') {
+        return;
+      }
 
       for (const item of data) {
         await this.nftImageRepository.insert({ ...item, isSold: false });
@@ -62,7 +64,7 @@ export class NftImageService {
 
   async updateStatusImage(imageId, isSold: boolean): Promise<boolean> {
     try {
-      if (!imageId) return false;
+      if (imageId == undefined || imageId == null) return false;
 
       await this.nftImageRepository.update({ imageId }, { isSold });
 
