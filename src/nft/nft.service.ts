@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { Repository } from 'typeorm';
 import { NFT } from './nft.entity';
-import { NFTImage } from './nft-image.entity';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { getWeb3 } from '../utils/web3';

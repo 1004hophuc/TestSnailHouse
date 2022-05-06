@@ -1,12 +1,31 @@
-import { Exclude } from 'class-transformer';
-import { CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  ObjectID,
+  UpdateDateColumn,
+  ObjectIdColumn,
+  Column,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 
 export abstract class AbstractEntity {
-  @PrimaryGeneratedColumn()
-  @Exclude()
-  public id: number;
+  @ObjectIdColumn()
+  public id: ObjectID;
 
-  @CreateDateColumn()
-  @Exclude()
-  public createdAt: Date;
+  @Column({ type: 'number' })
+  public createdAt: number;
+
+  @Column({ type: 'number' })
+  public updatedAt: number;
+
+  @BeforeInsert()
+  insertDates() {
+    this.createdAt = new Date().getTime();
+    this.updatedAt = new Date().getTime();
+  }
+
+  @BeforeUpdate()
+  updateDates() {
+    this.updatedAt = new Date().getTime();
+  }
 }

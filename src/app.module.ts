@@ -12,6 +12,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { NftController } from './nft/nft.controller';
 import { NftService } from './nft/nft.service';
 import { NftModule } from './nft/nft.module';
+import { HistoryModule } from './history/history.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,6 +39,7 @@ import { NftModule } from './nft/nft.module';
     UsersModule,
     TransactionsModule,
     NftModule,
+    HistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

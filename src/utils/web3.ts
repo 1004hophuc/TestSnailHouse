@@ -1,5 +1,6 @@
 import configuration from '../config';
 import Web3 from 'web3';
+import Common from '@ethereumjs/common';
 
 function getNodes(): string {
   return configuration()[process.env.CHAIN_ID ?? 97]?.appNodes;
@@ -7,7 +8,6 @@ function getNodes(): string {
 
 function getRandomNode() {
   const BSC_NODE_RPC = getNodes();
-  console.log(BSC_NODE_RPC);
   return BSC_NODE_RPC[Math.floor(Math.random() * BSC_NODE_RPC?.length)];
 }
 
@@ -21,6 +21,16 @@ function getRandomWeb3() {
 
 export const getWeb3 = () => {
   return getRandomWeb3();
+};
+
+export const getCustomNetwork = (chainId: number) => {
+  const customNetwork = Common.forCustomChain('mainnet', {
+    name: 'bnb',
+    networkId: chainId,
+    chainId,
+  });
+
+  return customNetwork;
 };
 
 // export const getContract = (abi: any, address: string) => {

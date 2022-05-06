@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 
+import { TransactionsService } from '../transactions/transactions.service';
+
 interface RefCode {
   address: string;
 }
@@ -15,6 +17,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
+    private transactionsServices: TransactionsService,
   ) {}
 
   async getRefCode({ address }: RefCode): Promise<string> {
@@ -52,5 +56,20 @@ export class UsersService {
     }
 
     return false;
+  }
+
+  async getTotalOfUser(address: string): Promise<any> {
+    const user = await this.usersRepository.findOne({
+      address: address.toLowerCase(),
+    });
+    if (!user) {
+      return null;
+    }
+
+    const amount = await this.transactionsServices.getAmountByRef(user.refCode);
+
+    const commission = +process.env.TOTAL_COMMISSION || 0.05;
+
+    return amount * commission || 0;
   }
 }

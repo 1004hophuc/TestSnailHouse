@@ -14,4 +14,12 @@ export class QueryTransactionDto {
   @Transform(({ value }): any => Boolean(value.toString() == 'true'))
   @IsOptional()
   isMarket = false;
+
+  @IsAlphanumeric()
+  @IsOptional()
+  address?: string;
+
+  @IsAlphanumeric()
+  @IsOptional()
+  refCode?: string;
 }

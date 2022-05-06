@@ -4,14 +4,11 @@ import { Transaction } from './transactions.entity';
 import { TransactionsController } from './transactions.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { NftService } from '../nft/nft.service';
-import { NftImageService } from '../nft/nft-image.service';
-
-import { NFT } from '../nft/nft.entity';
-import { NFTImage } from '../nft/nft-image.entity';
+import { NftModule } from '../nft/nft.module';
 @Module({
-  imports: [TypeOrmModule.forFeature([Transaction, NFT, NFTImage])],
+  imports: [NftModule, TypeOrmModule.forFeature([Transaction])],
   controllers: [TransactionsController],
-  providers: [TransactionsService, NftService, NftImageService],
+  providers: [TransactionsService],
+  exports: [TransactionsService],
 })
 export class TransactionsModule {}

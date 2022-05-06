@@ -16,5 +16,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [TypeOrmModule.forFeature([NFT, NFTImage])],
   controllers: [NftController],
   providers: [NftService, NftImageService],
+  exports: [NftService, NftImageService],
 })
 export class NftModule {}
