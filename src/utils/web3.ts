@@ -13,7 +13,6 @@ function getRandomNode() {
 
 function getRandomWeb3() {
   const provider: string = getRandomNode();
-  console.log('provider: ', provider);
   const newWeb3 = new Web3(provider);
 
   return newWeb3;

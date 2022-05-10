@@ -13,8 +13,14 @@ import { NftController } from './nft/nft.controller';
 import { NftService } from './nft/nft.service';
 import { NftModule } from './nft/nft.module';
 import { HistoryModule } from './history/history.module';
+import { ConfigurationModule } from './configuration/configuration.module';
+
+import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+
     ConfigModule.forRoot({
       envFilePath: ['.development.env', '.env'],
       // load: [configuration],
@@ -40,6 +46,7 @@ import { HistoryModule } from './history/history.module';
     TransactionsModule,
     NftModule,
     HistoryModule,
+    ConfigurationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

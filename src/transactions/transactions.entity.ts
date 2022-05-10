@@ -15,7 +15,10 @@ export class Transaction {
   @Column()
   address: string;
 
-  @Index({ unique: true })
+  @Column()
+  from: string;
+
+  @Index({ background: true })
   @Column()
   refCode: string;
 
@@ -29,10 +32,17 @@ export class Transaction {
   createdAt: number;
 
   @Column()
+  tokenId: number;
+
+  @Column()
+  timestamp: number;
+
+  @Index({ unique: true })
+  @Column()
   txHash: string;
 
-  @Column({ default: false, type: 'boolean' })
-  isMarket = false;
+  @Column({ default: true, type: 'boolean' })
+  isMarket = true;
 
   @Column()
   level: number;
@@ -50,6 +60,9 @@ export class Transaction {
 
   @BeforeInsert()
   updateDates() {
+    if (!this.timestamp) {
+      this.timestamp = new Date().getTime();
+    }
     this.createdAt = new Date().getTime();
   }
 

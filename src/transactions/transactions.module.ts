@@ -5,8 +5,14 @@ import { TransactionsController } from './transactions.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { NftModule } from '../nft/nft.module';
+import { ConfigurationModule } from '../configuration/configuration.module';
+
 @Module({
-  imports: [NftModule, TypeOrmModule.forFeature([Transaction])],
+  imports: [
+    ConfigurationModule,
+    NftModule,
+    TypeOrmModule.forFeature([Transaction]),
+  ],
   controllers: [TransactionsController],
   providers: [TransactionsService],
   exports: [TransactionsService],
