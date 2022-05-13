@@ -9,17 +9,13 @@ import { Transaction } from './transactions/transactions.entity';
 
 import { Connection } from 'typeorm';
 import { TransactionsModule } from './transactions/transactions.module';
-import { NftController } from './nft/nft.controller';
-import { NftService } from './nft/nft.service';
+
 import { NftModule } from './nft/nft.module';
 import { HistoryModule } from './history/history.module';
-import { ConfigurationModule } from './configuration/configuration.module';
-
-import { ScheduleModule } from '@nestjs/schedule';
+import { RewardsModule } from './rewards/rewards.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
 
     ConfigModule.forRoot({
       envFilePath: ['.development.env', '.env'],
@@ -46,7 +42,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     TransactionsModule,
     NftModule,
     HistoryModule,
-    ConfigurationModule,
+    RewardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

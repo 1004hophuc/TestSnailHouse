@@ -10,7 +10,7 @@ import { QueryNFTImageDto } from './dto/query-nft-image.dto';
 export class NftController {
   constructor(
     private readonly nftService: NftService,
-    private readonly nftImageService: NftImageService,
+    private readonly nftImageService: NftImageService
   ) {}
 
   @Get('/metadata/:id')
