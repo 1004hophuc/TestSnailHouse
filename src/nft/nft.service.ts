@@ -65,7 +65,7 @@ export class NftService {
     @InjectRepository(NFT)
     private nftRepository: Repository<NFT>,
 
-    private readonly nftImageService: NftImageService,
+    private readonly nftImageService: NftImageService
   ) {}
 
   async getMetadata(id: string): Promise<any> {
@@ -97,7 +97,7 @@ export class NftService {
 
       const contract = new web3.eth.Contract(
         NFTAbi as any,
-        process.env.CONTRACT_NFT,
+        process.env.CONTRACT_NFT
       );
 
       const tokenInfo = await contract.methods.getToken(+id).call();

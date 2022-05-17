@@ -1,15 +1,10 @@
-import {
-  BeforeInsert,
-  Column,
-  ObjectIdColumn,
-  ObjectID,
-  Entity,
-} from 'typeorm';
+import { AbstractEntity } from 'src/common/entities';
+import { Column, ObjectIdColumn, ObjectID, Entity } from 'typeorm';
 
 @Entity('rewards')
-export class Reward {
-  @ObjectIdColumn()
-  id: ObjectID;
+export class Reward extends AbstractEntity {
+  @Column()
+  dateReward: number;
 
   @Column()
   idoReward: number;
@@ -21,10 +16,5 @@ export class Reward {
   marketReward: number;
 
   @Column()
-  createdAt: number;
-
-  @BeforeInsert()
-  updateDates() {
-    this.createdAt = new Date().getTime();
-  }
+  isSent: boolean;
 }

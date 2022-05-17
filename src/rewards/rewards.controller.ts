@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { RewardsService } from './rewards.service';
 import { CreateRewardDto } from './dto/create-reward.dto';
@@ -18,6 +19,15 @@ export class RewardsController {
   @Post()
   public async create(@Body() createRewardDto: CreateRewardDto) {
     const resData = await this.rewardsService.create(createRewardDto);
+    return resData;
+  }
+
+  @Get('pagination')
+  public async getPagination(
+    @Query('page') page: string,
+    @Query('limit') limit: string
+  ) {
+    const resData = await this.rewardsService.getListPaginate(page, limit);
     return resData;
   }
 
@@ -34,11 +44,13 @@ export class RewardsController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
-    return this.rewardsService.update(+id, updateRewardDto);
+    return this.rewardsService.update(id, {
+      ...updateRewardDto,
+    });
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.rewardsService.remove(+id);
+  @Delete(':timestamp')
+  remove(@Param('timestamp') timestamp: string) {
+    return this.rewardsService.remove(+timestamp);
   }
 }

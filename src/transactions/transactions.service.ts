@@ -33,8 +33,17 @@ export class TransactionsService {
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
     private readonly nftService: NftService,
-    private readonly configService: ConfigurationService,
+    private readonly configService: ConfigurationService
   ) {}
+
+  async getAll() {
+    try {
+      const res = await this.transactionsRepository.find();
+      return res;
+    } catch (error) {
+      return error;
+    }
+  }
 
   async findAll(query: QueryTransactionDto) {
     const { page, limit, refCode, address } = query;
@@ -188,7 +197,7 @@ export class TransactionsService {
         if (data?.name == 'sentNFT') {
           const { returnValues } = await this.fetchEvent(
             'Receive',
-            item.blockNumber,
+            item.blockNumber
           );
 
           newData.address = data.params
@@ -207,7 +216,7 @@ export class TransactionsService {
         } else if (data?.name == 'buyNFT') {
           const { returnValues } = await this.fetchEvent(
             'Buy',
-            item.blockNumber,
+            item.blockNumber
           );
           newData.address = returnValues.user.toLowerCase();
           newData.launchpadId = +returnValues.launchIndex;
@@ -235,7 +244,7 @@ export class TransactionsService {
     if (response.data?.result?.length) {
       await this.configService.update(
         CONFIG.LAST_BLOCK,
-        `${response.data?.result[0].blockNumber}`,
+        `${response.data?.result[0].blockNumber}`
       );
     }
   }
@@ -245,7 +254,7 @@ export class TransactionsService {
 
     const contract = new web3.eth.Contract(
       LaunchPadABI as any,
-      process.env.CONTRACT_LAUNCHPAD,
+      process.env.CONTRACT_LAUNCHPAD
     );
 
     const data = await contract.getPastEvents(name || 'Receive', {

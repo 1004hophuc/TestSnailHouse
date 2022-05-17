@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 export class ConfigurationService {
   constructor(
     @InjectRepository(Configuration)
-    private configurationRepository: Repository<Configuration>,
+    private configurationRepository: Repository<Configuration>
   ) {}
 
   async create(createConfigurationDto: CreateConfigurationDto) {
@@ -21,7 +21,7 @@ export class ConfigurationService {
     delete createConfigurationDto.key;
 
     const item = await this.configurationRepository.create(
-      createConfigurationDto,
+      createConfigurationDto
     );
     const data = await this.configurationRepository.save(item);
     return data;

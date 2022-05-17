@@ -13,6 +13,8 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { NftModule } from './nft/nft.module';
 import { HistoryModule } from './history/history.module';
 import { RewardsModule } from './rewards/rewards.module';
+import { ProfitWithdrawerModule } from './profit-withdrawer/profit-withdrawer.module';
+import { ProfitModule } from './profit/profit.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { RewardsModule } from './rewards/rewards.module';
     NftModule,
     HistoryModule,
     RewardsModule,
+    ProfitWithdrawerModule,
+    ProfitModule,
   ],
   controllers: [AppController],
   providers: [AppService],

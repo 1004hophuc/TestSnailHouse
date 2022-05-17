@@ -1,15 +1,19 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
 
 export class CreateRewardDto {
   @IsNotEmpty()
-  @IsNumber()
+  @IsPositive()
   idoReward: number;
 
   @IsNotEmpty()
-  @IsNumber()
+  @IsPositive()
   swapReward: number;
 
   @IsNotEmpty()
-  @IsNumber()
+  @IsPositive()
   marketReward: number;
+
+  @IsNotEmpty()
+  @IsPositive()
+  dateReward: number;
 }

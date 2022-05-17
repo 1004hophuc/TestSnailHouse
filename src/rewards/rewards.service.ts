@@ -11,10 +11,38 @@ export class RewardsService {
     @InjectRepository(Reward) private rewardRepo: Repository<Reward>
   ) {}
 
-  public async create(createRewardDto: CreateRewardDto) {
+  public async create(createRewardDto: CreateRewardDto): Promise<any> {
     try {
-      const postResponse = await this.rewardRepo.save(createRewardDto);
+      const existReward = await this.rewardRepo.findOne({
+        dateReward: createRewardDto.dateReward,
+      });
+
+      if (existReward) {
+        return {
+          statusCode: 409,
+          message: 'Item is already exist!',
+        };
+      }
+
+      const item = this.rewardRepo.create(createRewardDto);
+      item.isSent = false;
+      const postResponse = await this.rewardRepo.save(item);
       return postResponse;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  public async getListPaginate(page: string, limit: string) {
+    try {
+      const [data, total] = await this.rewardRepo.findAndCount({
+        order: {
+          dateReward: 'ASC',
+        },
+        skip: (+page - 1) * +limit,
+        take: +limit,
+      });
+      return { data, total };
     } catch (error) {
       return error;
     }
@@ -38,11 +66,26 @@ export class RewardsService {
     }
   }
 
-  update(id: number, updateRewardDto: UpdateRewardDto) {
-    return `This action updates a #${id} reward`;
+  async update(id: string, updateRewardDto: UpdateRewardDto) {
+    try {
+      await this.rewardRepo.update(id, updateRewardDto);
+      return {
+        statusCode: 203,
+        message: 'Item update successfully',
+      };
+    } catch (error) {
+      return error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} reward`;
+  async remove(timestamp: number) {
+    try {
+      const affected = await this.rewardRepo.delete({ dateReward: timestamp });
+      return affected;
+    } catch (error) {
+      return error;
+    }
+
+    // return `This action removes a #${id} reward`;
   }
 }

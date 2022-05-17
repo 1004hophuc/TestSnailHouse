@@ -49,7 +49,7 @@ export class TransactionsController {
   async create(@Body() createTransactionDto: CreateTransactionDto) {
     try {
       const data = await this.transactionsService.createTransaction(
-        createTransactionDto,
+        createTransactionDto
       );
 
       return {
