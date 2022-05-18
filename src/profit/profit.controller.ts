@@ -37,7 +37,27 @@ export class ProfitController {
     @Query('page') page: string,
     @Query('limit') limit: string
   ) {
-    return this.profitService.findOne(timestamp, page, limit);
+    return this.profitService.profitByTimestamp(timestamp, page, limit);
+  }
+
+  @Get('userProfitHistory')
+  getUserProfitHistory(
+    @Query('account') user: string,
+    @Query('dateReward') dateReward: number,
+    @Query('type') type: string
+  ) {
+    if (dateReward)
+      return this.profitService.getUserProfitHistory({
+        user,
+        dateReward,
+        type,
+      });
+    return this.profitService.getUserProfitHistory({ user, type });
+  }
+
+  @Get('profitByUser')
+  profitByUser(@Query('account') user: string, @Query('type') type: string) {
+    return this.profitService.profitByUser(user, type);
   }
 
   @Patch(':id')

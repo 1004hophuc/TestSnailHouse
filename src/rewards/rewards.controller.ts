@@ -33,7 +33,7 @@ export class RewardsController {
 
   @Get()
   public async findAll() {
-    const resData = await this.rewardsService.findAll();
+    const resData = await this.rewardsService.findLatestReward();
     return resData;
   }
 

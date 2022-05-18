@@ -48,6 +48,21 @@ export class RewardsService {
     }
   }
 
+  public async findLatestReward() {
+    try {
+      const [lastRecord] = await this.rewardRepo.find({
+        where: {
+          isSent: true,
+        },
+        order: { dateReward: 'DESC' },
+      });
+
+      return lastRecord;
+    } catch (error) {
+      return error;
+    }
+  }
+
   public async findAll() {
     try {
       const postResponse = await this.rewardRepo.find();

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateProfitDto {
   @IsNotEmpty()
@@ -15,6 +15,10 @@ export class CreateProfitDto {
 
   @IsNotEmpty()
   @IsString()
+  weiAmountProfit: string;
+
+  @IsNotEmpty()
+  @IsString()
   type: string;
 
   @IsNotEmpty()
@@ -23,7 +27,7 @@ export class CreateProfitDto {
 
   @IsNotEmpty()
   @IsNumber()
-  daoProfit: number;
+  daoProfitPercent: number;
 
   @IsNotEmpty()
   @IsNumber()

@@ -16,13 +16,16 @@ export class Profit extends AbstractEntity {
   amountProfit: number;
 
   @Column()
+  weiAmountProfit: number;
+
+  @Column()
   type: string;
 
   @Column()
   dexProfit: number;
 
   @Column()
-  daoProfit: number;
+  daoProfitPercent: number;
 
   @Column()
   dateReward: number;
