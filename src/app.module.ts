@@ -15,6 +15,7 @@ import { HistoryModule } from './history/history.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { ProfitWithdrawerModule } from './profit-withdrawer/profit-withdrawer.module';
 import { ProfitModule } from './profit/profit.module';
+import { AirdropsModule } from './airdrops/airdrops.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ProfitModule } from './profit/profit.module';
     RewardsModule,
     ProfitWithdrawerModule,
     ProfitModule,
+    AirdropsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

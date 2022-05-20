@@ -60,6 +60,12 @@ export class ProfitController {
     @Query('type') type: PROFIT_TYPE
   ) {
     const lowercaseAddress = user.toLowerCase();
-    return this.profitService.profitByUser(lowercaseAddress, type);
+    return this.profitService.profitUserWithType(lowercaseAddress, type);
+  }
+
+  @Get('profitTotal')
+  profitsTotalType(@Query('account') user: string) {
+    const lowercaseAddress = user.toLowerCase();
+    return this.profitService.profitsTotalType(lowercaseAddress);
   }
 }

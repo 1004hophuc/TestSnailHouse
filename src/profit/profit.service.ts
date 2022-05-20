@@ -172,7 +172,7 @@ export class ProfitService {
     }
   }
 
-  async profitByUser(user: string, type: PROFIT_TYPE) {
+  async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
       const latestReward = await this.rewardsService.findLatestReward();
       if (!latestReward) return {};
@@ -229,6 +229,50 @@ export class ProfitService {
     } catch (error) {
       return error;
     }
+  }
+
+  async totalProfitByType(user: string, type: PROFIT_TYPE) {
+    const usersProfitByType = await this.profitRepo.find({
+      where: {
+        user,
+        type,
+      },
+    });
+    const totalProfit = usersProfitByType.reduce(
+      (sum, profit) => (sum += profit.amountProfit),
+      0
+    );
+    return totalProfit;
+  }
+
+  async profitsTotalType(user: string) {
+    // check if there was any user profit
+    const profits = await this.findAll();
+    if (profits.length <= 0) return {};
+
+    // Type arr to get all the user total profit of each type
+    const profitTypes = [
+      PROFIT_TYPE.IDO,
+      PROFIT_TYPE.SWAP,
+      PROFIT_TYPE.MARKET,
+      PROFIT_TYPE.SEEDINVEST,
+      PROFIT_TYPE.NFTLAUNCHPAD,
+      PROFIT_TYPE.NFTGAME,
+    ];
+
+    const profitTotal = profitTypes.reduce(
+      async (tempObj: any, type: PROFIT_TYPE) => {
+        const totalProfit = await this.totalProfitByType(user, type);
+        const resolveObj = await tempObj; // wait for the previous obj done
+        return {
+          ...resolveObj,
+          [type]: totalProfit,
+        };
+      },
+      Promise.resolve({})
+    );
+
+    return profitTotal;
   }
 
   async findAll() {

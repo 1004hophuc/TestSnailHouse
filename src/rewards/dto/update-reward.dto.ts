@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { IsNotEmpty, IsNumber, IsPositive, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive, Max, Min } from 'class-validator';
+import { getCurrentTime } from 'src/utils';
 import { CreateRewardDto } from './create-reward.dto';
 
 export class UpdateRewardDto extends PartialType(CreateRewardDto) {
@@ -35,5 +36,6 @@ export class UpdateRewardDto extends PartialType(CreateRewardDto) {
 
   @IsNotEmpty()
   @IsPositive()
+  @Max(getCurrentTime())
   dateReward: number;
 }
