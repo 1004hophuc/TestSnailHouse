@@ -16,7 +16,7 @@ import { PROFIT_TYPE } from './entities/profit.entity';
 @Controller('profit')
 export class ProfitController {
   constructor(private readonly profitService: ProfitService) {}
-  
+
   @Get('/calculate/:id')
   calculateProfit(@Param('id') id: string) {
     return this.profitService.calculateProfit(id);
