@@ -1,5 +1,5 @@
 import { AbstractEntity } from 'src/common/entities';
-import { Column, ObjectIdColumn, ObjectID, Entity } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 
 @Entity('rewards')
 export class Reward extends AbstractEntity {
@@ -14,6 +14,15 @@ export class Reward extends AbstractEntity {
 
   @Column()
   marketReward: number;
+
+  @Column()
+  nftLaunchpadReward: number;
+
+  @Column()
+  nftGameReward: number;
+
+  @Column()
+  seedInvestReward: number;
 
   @Column()
   isSent: boolean;

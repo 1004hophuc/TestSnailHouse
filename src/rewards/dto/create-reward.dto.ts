@@ -1,19 +1,39 @@
-import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPositive, Max, Min } from 'class-validator';
+import { getCurrentTime } from 'src/utils';
 
 export class CreateRewardDto {
   @IsNotEmpty()
-  @IsPositive()
+  @IsNumber()
+  @Min(0)
   idoReward: number;
 
   @IsNotEmpty()
-  @IsPositive()
+  @IsNumber()
+  @Min(0)
   swapReward: number;
 
   @IsNotEmpty()
-  @IsPositive()
+  @IsNumber()
+  @Min(0)
   marketReward: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  nftLaunchpadReward: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  nftGameReward: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  seedInvestReward: number;
+
+  @IsNotEmpty()
   @IsPositive()
+  @Max(getCurrentTime())
   dateReward: number;
 }

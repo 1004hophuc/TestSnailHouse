@@ -23,24 +23,23 @@ export class RewardsService {
           message: 'Item is already exist!',
         };
       }
-
       const item = this.rewardRepo.create(createRewardDto);
       item.isSent = false;
-      const postResponse = await this.rewardRepo.save(item);
-      return postResponse;
+      const reward = await this.rewardRepo.save(item);
+      return reward;
     } catch (error) {
       return error;
     }
   }
 
-  public async getListPaginate(page: string, limit: string) {
+  public async getListPaginate(page: number, limit: number) {
     try {
       const [data, total] = await this.rewardRepo.findAndCount({
         order: {
           dateReward: 'ASC',
         },
-        skip: (+page - 1) * +limit,
-        take: +limit,
+        skip: (page - 1) * limit,
+        take: limit,
       });
       return { data, total };
     } catch (error) {
@@ -65,8 +64,8 @@ export class RewardsService {
 
   public async findAll() {
     try {
-      const postResponse = await this.rewardRepo.find();
-      return postResponse;
+      const rewards = await this.rewardRepo.find();
+      return rewards;
     } catch (error) {
       return error;
     }
@@ -74,8 +73,8 @@ export class RewardsService {
 
   public async findOne(id: string) {
     try {
-      const postResponse = await this.rewardRepo.findOne(id);
-      return postResponse;
+      const reward = await this.rewardRepo.findOne(id);
+      return reward;
     } catch (error) {
       return error;
     }
@@ -95,12 +94,12 @@ export class RewardsService {
 
   async remove(timestamp: number) {
     try {
-      const affected = await this.rewardRepo.delete({ dateReward: timestamp });
-      return affected;
+      await this.rewardRepo.delete({ dateReward: timestamp });
+      return {
+        message: 'Delete item successfully!',
+      };
     } catch (error) {
       return error;
     }
-
-    // return `This action removes a #${id} reward`;
   }
 }

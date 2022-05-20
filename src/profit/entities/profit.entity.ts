@@ -1,6 +1,15 @@
 import { AbstractEntity } from 'src/common/entities';
 import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
 
+export enum PROFIT_TYPE {
+  IDO = 'ido',
+  SWAP = 'swap',
+  MARKET = 'market',
+  NFTLAUNCHPAD = 'nftLaunchpad',
+  NFTGAME = 'nftGame',
+  SEEDINVEST = 'seedInvest',
+}
+
 @Entity('profit')
 export class Profit extends AbstractEntity {
   @ObjectIdColumn()
@@ -16,10 +25,10 @@ export class Profit extends AbstractEntity {
   amountProfit: number;
 
   @Column()
-  weiAmountProfit: number;
+  weiAmountProfit: string;
 
   @Column()
-  type: string;
+  type: PROFIT_TYPE;
 
   @Column()
   dexProfit: number;

@@ -39,7 +39,7 @@ export class HistoryService {
 
     private transactionServices: TransactionsService,
 
-    private usersServices: UsersService,
+    private usersServices: UsersService
   ) {}
 
   async checkPendingUser(account: string) {
@@ -96,8 +96,8 @@ export class HistoryService {
       const hash = web3.utils.keccak256(
         web3.eth.abi.encodeParameters(
           ['uint256', 'address', 'uint256'],
-          [Web3.utils.toWei(`${amount}`), address.toLowerCase(), nonce],
-        ),
+          [Web3.utils.toWei(`${amount}`), address.toLowerCase(), nonce]
+        )
       );
 
       const signature = web3.eth.accounts.sign(hash, PRIVATE_KEY);
@@ -150,7 +150,7 @@ export class HistoryService {
         txHash: newObj.txHash,
       });
       if (!e) {
-        e = await this.historyRepository.create(createHistoryDto);
+        e = this.historyRepository.create(createHistoryDto);
       } else {
         Object.keys(newObj).forEach((key) => {
           e[key] = newObj[key];

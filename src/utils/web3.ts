@@ -1,6 +1,7 @@
 import configuration from '../config';
 import Web3 from 'web3';
 import Common from '@ethereumjs/common';
+import BigNumber from 'bignumber.js';
 
 function getNodes(): string {
   return configuration()[process.env.CHAIN_ID ?? 97]?.appNodes;
@@ -30,6 +31,14 @@ export const getCustomNetwork = (chainId: number) => {
   });
 
   return customNetwork;
+};
+
+export const toWei = (number: number): string => {
+  try {
+    return Web3.utils.toWei(new BigNumber(number).toString(), 'ether');
+  } catch (e) {
+    console.log('e:', e);
+  }
 };
 
 // export const getContract = (abi: any, address: string) => {

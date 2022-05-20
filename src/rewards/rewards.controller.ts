@@ -18,14 +18,14 @@ export class RewardsController {
 
   @Post()
   public async create(@Body() createRewardDto: CreateRewardDto) {
-    const resData = await this.rewardsService.create(createRewardDto);
-    return resData;
+    const createReward = await this.rewardsService.create(createRewardDto);
+    return createReward;
   }
 
   @Get('pagination')
   public async getPagination(
-    @Query('page') page: string,
-    @Query('limit') limit: string
+    @Query('page') page: number,
+    @Query('limit') limit: number
   ) {
     const resData = await this.rewardsService.getListPaginate(page, limit);
     return resData;
