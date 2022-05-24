@@ -7,6 +7,7 @@ import { Profit, PROFIT_TYPE } from './entities/profit.entity';
 import { UserProfitDto } from './dto/user-profit.dto';
 import { toWei } from 'src/utils/web3';
 import { getCurrentTime, profitDao } from 'src/utils';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;
@@ -20,6 +21,7 @@ export class ProfitService {
     private readonly rewardsService: RewardsService
   ) {}
 
+  // @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
   async calculateProfit(id: string) {
     try {
       //  Get dex profit
@@ -32,8 +34,9 @@ export class ProfitService {
         nftLaunchpadReward,
         nftGameReward,
         seedInvestReward,
+        isSent,
       } = itemReward;
-
+      if (isSent) return;
       // Get all dao user.
       const userDaoList = await this.transactionService.getAll();
       if (userDaoList.length <= 0) return { message: 'No DAO members' };

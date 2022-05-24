@@ -16,6 +16,7 @@ import { RewardsModule } from './rewards/rewards.module';
 import { ProfitWithdrawerModule } from './profit-withdrawer/profit-withdrawer.module';
 import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
+import { MailSubmitModule } from './mail-submit/mail-submit.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AirdropsModule } from './airdrops/airdrops.module';
     ProfitWithdrawerModule,
     ProfitModule,
     AirdropsModule,
+    MailSubmitModule,
   ],
   controllers: [AppController],
   providers: [AppService],

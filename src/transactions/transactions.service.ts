@@ -45,6 +45,11 @@ export class TransactionsService {
     }
   }
 
+  async getOne(address: string) {
+    const transaction = await this.transactionsRepository.findOne({ address });
+    return transaction;
+  }
+
   async findAll(query: QueryTransactionDto) {
     const { page, limit, refCode, address } = query;
 
