@@ -19,6 +19,7 @@ export class Airdrop extends AbstractEntity {
 
   @Column()
   dateStart: number;
+
   @Column()
   dateEnd: number;
 }

@@ -17,6 +17,7 @@ import { ProfitWithdrawerModule } from './profit-withdrawer/profit-withdrawer.mo
 import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
+import { VotingModule } from './voting/voting.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { MailSubmitModule } from './mail-submit/mail-submit.module';
     ProfitModule,
     AirdropsModule,
     MailSubmitModule,
+    VotingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,11 +1,14 @@
 import {
+  IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
   Min,
 } from 'class-validator';
-import { getCurrentTime } from 'src/utils';
+import { getCurrentStartOfDate, getCurrentTime } from 'src/utils';
+import { IsBiggerThan } from 'src/validators/isBiggerThan';
 
 export enum AirdropType {
   ALL = 'all',
@@ -32,7 +35,7 @@ export class CreateAirdropDto {
   tokenName: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsEnum(AirdropType)
   type: AirdropType;
 
   @IsNotEmpty()
@@ -40,11 +43,14 @@ export class CreateAirdropDto {
   amountPerUser: number;
 
   @IsNotEmpty()
-  @IsPositive()
+  @IsInt()
+  @Min(getCurrentStartOfDate())
   dateStart: number;
 
   @IsNotEmpty()
-  @IsPositive()
-  @Min(getCurrentTime())
+  @IsInt()
+  @IsBiggerThan('dateStart', {
+    message: 'dateEnd must be larger than dateStart',
+  })
   dateEnd: number;
 }

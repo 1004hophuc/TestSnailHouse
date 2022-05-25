@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -26,6 +27,6 @@ export class QueryDto {
   limit?: number;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(AirdropType)
   type?: AirdropType;
 }
