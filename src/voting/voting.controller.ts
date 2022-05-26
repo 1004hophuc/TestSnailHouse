@@ -25,18 +25,23 @@ export class VotingController {
     return this.votingService.findAll();
   }
 
+  @Get('pagination')
+  getPaginate(@Param('page') page: number, @Param('limit') limit: number) {
+    return this.votingService.getPaginate(page, limit);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.votingService.findOne(id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateVotingDto: UpdateVotingDto) {
-  //   return this.votingService.update(+id, updateVotingDto);
-  // }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateVotingDto: UpdateVotingDto) {
+    return this.votingService.update(+id, updateVotingDto);
+  }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.votingService.remove(+id);
-  // }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.votingService.remove(+id);
+  }
 }

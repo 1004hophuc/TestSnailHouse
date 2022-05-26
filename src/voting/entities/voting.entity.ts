@@ -20,5 +20,8 @@ export class Voting extends AbstractEntity {
   dateEnd: number;
 
   @Column()
+  voteID: number;
+
+  @Column()
   options: OptionProperty[];
 }

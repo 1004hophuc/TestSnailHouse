@@ -12,6 +12,8 @@ export class VotingService {
   ) {}
   async create(createVotingDto: CreateVotingDto) {
     const createVote = this.votingRepo.create(createVotingDto);
+    const voteID = (await this.findAll()).length;
+    createVote.voteID = voteID;
     const saveVote = await this.votingRepo.save(createVote);
     return saveVote;
   }
@@ -29,6 +31,7 @@ export class VotingService {
       skip: (page - 1) * limit,
       take: limit,
     });
+
     return { data, total };
   }
 
