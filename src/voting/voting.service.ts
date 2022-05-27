@@ -15,7 +15,9 @@ export class VotingService {
     const voteID = (await this.findAll()).length;
     createVote.voteID = voteID;
     const saveVote = await this.votingRepo.save(createVote);
-    return saveVote;
+    const proposalUrl = `${process.env.APP_DOMAIN}/voting/${createVote.id}`;
+
+    return { ...saveVote, proposalUrl };
   }
 
   async findAll() {

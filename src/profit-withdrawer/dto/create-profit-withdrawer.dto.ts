@@ -1,9 +1,16 @@
 import {
-  IsAlphanumeric,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
+import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
+
+export enum WithdrawStatus {
+  PENDING = 'pending',
+  FINISH = 'finish',
+}
 
 export class CreateProfitWithdrawerDto {
   @IsNotEmpty()
@@ -15,18 +22,22 @@ export class CreateProfitWithdrawerDto {
   amountWithdraw: number;
 
   @IsNotEmpty()
+  @IsString()
+  amountWeiWithdraw: string;
+
+  @IsNotEmpty()
   @IsNumber()
   dateWithdraw: number;
 
   @IsNotEmpty()
-  @IsString()
-  type: string;
+  @IsEnum(PROFIT_TYPE)
+  type: PROFIT_TYPE;
 
   @IsNotEmpty()
   @IsString()
   txHash: string;
 
-  @IsNotEmpty()
-  @IsString()
-  status: string;
+  @IsOptional()
+  @IsEnum(WithdrawStatus)
+  status?: WithdrawStatus;
 }

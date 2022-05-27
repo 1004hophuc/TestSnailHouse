@@ -1,5 +1,7 @@
 import { AbstractEntity } from 'src/common/entities';
+import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
 import { Column, ObjectIdColumn, ObjectID, Entity } from 'typeorm';
+import { WithdrawStatus } from '../dto/create-profit-withdrawer.dto';
 
 @Entity('profit-withdrawer')
 export class ProfitWithdrawer extends AbstractEntity {
@@ -13,14 +15,17 @@ export class ProfitWithdrawer extends AbstractEntity {
   amountWithdraw: number;
 
   @Column()
+  amountWeiWithdraw: string;
+
+  @Column()
   dateWithdraw: number;
 
   @Column()
-  type: string;
+  type: PROFIT_TYPE;
 
   @Column()
   txHash: string;
 
   @Column()
-  status: string;
+  status: WithdrawStatus;
 }

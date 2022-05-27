@@ -234,6 +234,38 @@ export class ProfitService {
     }
   }
 
+  async getTotalWithdrawAvailable(
+    user: string,
+    type: PROFIT_TYPE
+  ): Promise<number> {
+    const userProfit = await this.profitRepo.find({
+      where: {
+        user,
+        type,
+      },
+    });
+
+    const totalUserProfit = userProfit.reduce(
+      (sum, element) => (sum += element.amountProfit),
+      0
+    );
+
+    const userHasWithdraw = await this.profitRepo.find({
+      where: {
+        user,
+        type,
+        isWithdraw: 1,
+      },
+    });
+
+    const totalUserHasWithdraw = userHasWithdraw.reduce(
+      (sum, element) => (sum += element.amountProfit),
+      0
+    );
+
+    return totalUserProfit - totalUserHasWithdraw;
+  }
+
   async totalProfitByType(user: string, type: PROFIT_TYPE) {
     const usersProfitByType = await this.profitRepo.find({
       where: {
@@ -333,5 +365,9 @@ export class ProfitService {
     } catch (error) {
       return error;
     }
+  }
+
+  async updateUserWithdraw(user: string, type: PROFIT_TYPE) {
+    await this.profitRepo.update({ user, type }, { isWithdraw: 1 });
   }
 }
