@@ -1,13 +1,19 @@
-import { IsInt, IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { VoteType } from './create-voting.dto';
 
 export class QueryDto {
   @IsOptional()
   @IsNumber()
-  @IsPositive()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
   @IsNumber()
-  @IsPositive()
+  @Type(() => Number)
   limit?: number;
+
+  @IsOptional()
+  @IsEnum(VoteType)
+  type?: VoteType;
 }

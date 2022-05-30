@@ -9,6 +9,7 @@ import { Abi as AirdropABI } from 'src/contract/Airdrop';
 import { getCurrentTime } from 'src/utils';
 import { TransactionsService } from 'src/transactions/transactions.service';
 import Web3 from 'web3';
+import { Abi as NFTAbi } from 'src/contract/NFT';
 
 @Injectable()
 export class AirdropsService {
@@ -21,8 +22,26 @@ export class AirdropsService {
     const isAddress = Web3.utils.isAddress(user);
     if (!isAddress) return true;
 
-    const daoMember = await this.transactionService.getOne(user);
-    return !daoMember;
+    // Check if user has bought NFT
+    const hasBought = await this.transactionService.getOne(user);
+
+    if (!hasBought) return true;
+    const web3 = getWeb3();
+
+    const StakingNFTContract = new web3.eth.Contract(
+      NFTAbi as any,
+      process.env.CONTRACT_NFT
+    );
+
+    // Check if this user has staked NFT.
+    const tokenId = await StakingNFTContract.methods
+      .tokenOfOwnerByIndex(user, 0)
+      .call();
+    if (!tokenId) return true;
+
+    const info = await StakingNFTContract.methods.getToken(tokenId).call();
+
+    return !info.stakeFreeze;
   }
 
   async create(createAirdropDto: CreateAirdropDto) {
@@ -47,7 +66,6 @@ export class AirdropsService {
     try {
       const web3 = getWeb3();
       const airdrop = await this.findOne(airdropId);
-      console.log('airdrop:', airdrop);
       if (getCurrentTime() > airdrop.dateEnd) return;
       if (airdrop.dateStart > getCurrentTime()) return;
 

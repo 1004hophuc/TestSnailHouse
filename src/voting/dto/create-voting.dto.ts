@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -13,6 +14,11 @@ import {
 } from 'class-validator';
 import { getCurrentHourDate } from 'src/utils';
 import { IsBiggerThan } from 'src/validators/isBiggerThan';
+
+export enum VoteType {
+  TECH = 'tech',
+  NON_TECH = 'non-tech',
+}
 
 export class CreateVotingDto {
   @ValidateNested({ each: true })
@@ -30,6 +36,10 @@ export class CreateVotingDto {
   @IsNotEmpty()
   @IsString()
   content: string;
+
+  @IsNotEmpty()
+  @IsEnum(VoteType)
+  type: VoteType;
 
   @IsNotEmpty()
   @IsNumber()

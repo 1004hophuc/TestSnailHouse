@@ -13,6 +13,7 @@ import { TransactionsService } from 'src/transactions/transactions.service';
 import { Abi as RewardsABI } from 'src/contract/Rewards';
 import Web3 from 'web3';
 import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
+import { Abi as NFTAbi } from 'src/contract/NFT';
 
 @Injectable()
 export class ProfitWithdrawerService {
@@ -82,8 +83,26 @@ export class ProfitWithdrawerService {
     const isAddress = Web3.utils.isAddress(user);
     if (!isAddress) return true;
 
-    const daoMember = await this.transactionService.getOne(user);
-    return daoMember;
+    // Check if user has bought NFT
+    const hasBought = await this.transactionService.getOne(user);
+
+    if (!hasBought) return true;
+    const web3 = getWeb3();
+
+    const StakingNFTContract = new web3.eth.Contract(
+      NFTAbi as any,
+      process.env.CONTRACT_NFT
+    );
+
+    // Check if this user has staked NFT.
+    const tokenId = await StakingNFTContract.methods
+      .tokenOfOwnerByIndex(user, 0)
+      .call();
+    if (!tokenId) return true;
+
+    const info = await StakingNFTContract.methods.getToken(tokenId).call();
+
+    return !info.stakeFreeze;
   }
 
   async signWithdrawMessage({ user, type }) {

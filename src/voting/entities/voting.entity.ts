@@ -1,6 +1,6 @@
 import { AbstractEntity } from 'src/common/entities';
 import { Entity, Column } from 'typeorm';
-import { OptionProperty } from '../dto/create-voting.dto';
+import { OptionProperty, VoteType } from '../dto/create-voting.dto';
 
 @Entity('voting')
 export class Voting extends AbstractEntity {
@@ -9,6 +9,9 @@ export class Voting extends AbstractEntity {
 
   @Column()
   content: string;
+
+  @Column()
+  type: VoteType;
 
   @Column()
   dateSubmit: number;

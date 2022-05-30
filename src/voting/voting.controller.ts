@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { VotingService } from './voting.service';
-import { CreateVotingDto } from './dto/create-voting.dto';
+import { CreateVotingDto, VoteType } from './dto/create-voting.dto';
 import { UpdateVotingDto } from './dto/update-voting.dto';
+import { QueryDto } from './dto/query-voting.dto';
 
 @Controller('voting')
 export class VotingController {
@@ -26,8 +28,8 @@ export class VotingController {
   }
 
   @Get('pagination')
-  getPaginate(@Param('page') page: number, @Param('limit') limit: number) {
-    return this.votingService.getPaginate(page, limit);
+  getPaginate(@Query() query: QueryDto) {
+    return this.votingService.getPaginate(query);
   }
 
   @Get(':id')

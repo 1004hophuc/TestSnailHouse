@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateVotingDto } from './dto/create-voting.dto';
+import { CreateVotingDto, VoteType } from './dto/create-voting.dto';
+import { QueryDto } from './dto/query-voting.dto';
 import { UpdateVotingDto } from './dto/update-voting.dto';
 import { Voting } from './entities/voting.entity';
 
@@ -25,13 +26,15 @@ export class VotingService {
     return votes;
   }
 
-  async getPaginate(page: number, limit: number) {
+  async getPaginate(query: QueryDto) {
+    const { page, limit, type } = query;
     const [data, total] = await this.votingRepo.findAndCount({
       order: {
         dateStart: 'DESC',
       },
       skip: (page - 1) * limit,
       take: limit,
+      where: type ? { type } : {},
     });
 
     return { data, total };
