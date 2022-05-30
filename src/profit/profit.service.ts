@@ -89,6 +89,7 @@ export class ProfitService {
           weiAmountProfit: toWei(idoProfit),
           type: PROFIT_TYPE.IDO,
           dexProfit: idoReward,
+          docUrl: itemReward.reportURL,
         };
         const swapProfitData = {
           ...userDefaultData,
@@ -97,6 +98,7 @@ export class ProfitService {
           type: PROFIT_TYPE.SWAP,
           dexProfit: swapReward,
           daoProfitPercent: SWAP_PROFIT_PERCENT, // swap is 10%
+          docUrl: itemReward.swapURL,
         };
         const marketProfitData = {
           ...userDefaultData,
@@ -104,6 +106,7 @@ export class ProfitService {
           weiAmountProfit: toWei(marketProfit),
           type: PROFIT_TYPE.MARKET,
           dexProfit: marketReward,
+          docUrl: itemReward.marketURL,
         };
 
         const nftLaunchpadProfitData = {
@@ -112,6 +115,7 @@ export class ProfitService {
           weiAmountProfit: toWei(nftLaunchpadProfit),
           type: PROFIT_TYPE.NFTLAUNCHPAD,
           dexProfit: nftLaunchpadReward,
+          docUrl: itemReward.nftLaunchpadURL,
         };
 
         const nftGameProfitData = {
@@ -120,6 +124,7 @@ export class ProfitService {
           weiAmountProfit: toWei(nftGameProfit),
           type: PROFIT_TYPE.NFTGAME,
           dexProfit: nftGameReward,
+          docUrl: itemReward.nftGameURL,
         };
 
         const seedInvestProfitData = {
@@ -128,6 +133,7 @@ export class ProfitService {
           weiAmountProfit: toWei(seedInvestProfit),
           type: PROFIT_TYPE.SEEDINVEST,
           dexProfit: seedInvestReward,
+          docUrl: itemReward.seedInvestURL,
         };
 
         profitArr = [
@@ -214,8 +220,13 @@ export class ProfitService {
         (sum, element) => (sum += element.amountProfit),
         0
       );
-      const { dexProfit, totalDaoUser, daoProfitPercent, amountProfit } =
-        latestProfit;
+      const {
+        dexProfit,
+        totalDaoUser,
+        daoProfitPercent,
+        amountProfit,
+        docUrl,
+      } = latestProfit;
 
       const data = {
         daoProfit: dexProfit,
@@ -226,6 +237,7 @@ export class ProfitService {
         totalWithdraw: totalUserWithdraw,
         withdrawAvailable: totalUserProfit - totalUserWithdraw,
         dateReward: latestReward.dateReward,
+        docUrl,
       };
 
       return data;

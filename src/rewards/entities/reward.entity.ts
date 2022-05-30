@@ -26,4 +26,22 @@ export class Reward extends AbstractEntity {
 
   @Column()
   isSent: boolean;
+
+  @Column()
+  idoURL: string;
+
+  @Column()
+  swapURL: string;
+
+  @Column()
+  marketURL: string;
+
+  @Column()
+  nftLaunchpadURL: string;
+
+  @Column()
+  seedInvestURL: string;
+
+  @Column()
+  nftGameURL: string;
 }

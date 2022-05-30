@@ -19,6 +19,9 @@ export class Profit extends AbstractEntity {
   dateSendReward: number;
 
   @Column()
+  docUrl: string;
+
+  @Column()
   user: string;
 
   @Column()
