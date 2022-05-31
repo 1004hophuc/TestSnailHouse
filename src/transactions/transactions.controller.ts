@@ -7,6 +7,13 @@ import { TransactionsService } from './transactions.service';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
+  @Get('get-staked')
+  getUserStaked(@Query() query: QueryTransactionDto) {
+    const { address } = query;
+    if (!address) return false;
+    return this.transactionsService.getUserStaked(address.toLowerCase());
+  }
+
   @Get()
   async get(@Query() query: QueryTransactionDto) {
     try {

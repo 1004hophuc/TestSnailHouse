@@ -18,6 +18,7 @@ import { getTime, CONFIG, GET_AMOUNT_LAUNCHPAD } from '../config';
 
 import { Abi as LaunchPadABI } from '../contract/LaunchPad';
 import axios from 'axios';
+import { Abi as NFTAbi } from '../contract/NFT';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
@@ -45,9 +46,30 @@ export class TransactionsService {
     }
   }
 
+  async getByStaked(isStaked) {
+    try {
+      const res = await this.transactionsRepository.find({ isStaked });
+      return res;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async getOne(address: string) {
     const transaction = await this.transactionsRepository.findOne({ address });
     return transaction;
+  }
+
+  async updateTransaction(address: string, data) {
+    const transaction = await this.getOne(address);
+
+    await this.transactionsRepository.update(
+      { address },
+      {
+        ...transaction,
+        isStaked: false,
+      }
+    );
   }
 
   async findAll(query: QueryTransactionDto) {
@@ -268,5 +290,28 @@ export class TransactionsService {
     });
 
     return data[0];
+  }
+
+  async getUserStaked(address: string): Promise<boolean> {
+    const web3 = getWeb3();
+    if (!web3.utils.isAddress(address)) return false;
+
+    const NFTContract = new web3.eth.Contract(
+      NFTAbi as any,
+      process.env.CONTRACT_NFT
+    );
+
+    const user = await this.getOne(address);
+
+    if (!user.isStaked) {
+      const { stakeFreeze } = await NFTContract.methods
+        .getInfoForStaking(user.tokenId)
+        .call();
+      await this.transactionsRepository.update(
+        { address: user.address },
+        { isStaked: stakeFreeze }
+      );
+    }
+    return true;
   }
 }

@@ -5,9 +5,9 @@ import { TransactionsService } from 'src/transactions/transactions.service';
 import { Repository } from 'typeorm';
 import { Profit, PROFIT_TYPE } from './entities/profit.entity';
 import { UserProfitDto } from './dto/user-profit.dto';
-import { toWei } from 'src/utils/web3';
+import { toWei, getWeb3, multicall } from 'src/utils/web3';
 import { getCurrentTime, profitDao } from 'src/utils';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Abi as NFTAbi } from '../contract/NFT';
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;
@@ -23,6 +23,7 @@ export class ProfitService {
 
   // @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
   async calculateProfit(id: string) {
+    const web3 = getWeb3();
     try {
       //  Get dex profit
       const itemReward = await this.rewardsService.findOne(id);
@@ -37,12 +38,14 @@ export class ProfitService {
         isSent,
       } = itemReward;
       if (isSent) return;
-      // Get all dao user.
-      const userDaoList = await this.transactionService.getAll();
-      if (userDaoList.length <= 0) return { message: 'No DAO members' };
 
-      //  Calculate ido,swap,market,nftLaunchpad,nftGame,seedInvest profit. (70% of dex profit, except swap is 10%)
+      // Get all DAO user.
+      const userDaoList = await this.transactionService.getByStaked(true);
       const totalDaoUser = userDaoList.length;
+      if (totalDaoUser <= 0) return { message: 'No DAO members' };
+
+      //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
+      // (70% of dex profit, except swap is 10%)
 
       const idoProfit = profitDao(idoReward, DAO_PROFIT_PERCENT, totalDaoUser);
       const swapProfit = profitDao(
@@ -157,6 +160,7 @@ export class ProfitService {
         message: 'Calculation success!',
       };
     } catch (error) {
+      console.log('error:', error);
       return error;
     }
   }

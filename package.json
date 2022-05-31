@@ -23,6 +23,7 @@
   "dependencies": {
     "@ethereumjs/common": "^2.6.4",
     "@ethereumjs/tx": "^3.5.1",
+    "@ethersproject/abi": "^5.6.3",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^2.0.0",
     "@nestjs/core": "^8.0.0",

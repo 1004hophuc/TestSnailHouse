@@ -2,12 +2,20 @@ import configuration from '../config';
 import Web3 from 'web3';
 import Common from '@ethereumjs/common';
 import BigNumber from 'bignumber.js';
+import { MulticallAbi } from '../contract/Multicall';
+import { Interface } from '@ethersproject/abi';
+
+const MULTICALL_ADDRESS = {
+  56: '0x38ce767d81de3940CFa5020B55af1A400ED4F657',
+  97: '0x67ADCB4dF3931b0C5Da724058ADC2174a9844412',
+  137: '0x95028E5B8a734bb7E2071F96De89BABe75be9C8E',
+};
 
 function getNodes(): string {
   return configuration()[process.env.CHAIN_ID ?? 97]?.appNodes;
 }
 
-function getRandomNode() {
+export function getRandomNode() {
   const BSC_NODE_RPC = getNodes();
   return BSC_NODE_RPC[Math.floor(Math.random() * BSC_NODE_RPC?.length)];
 }
@@ -39,6 +47,29 @@ export const toWei = (number: number): string => {
   } catch (e) {
     console.log('e:', e);
   }
+};
+
+export const getMulticallContract = () => {
+  const MulticallAddress = MULTICALL_ADDRESS[97];
+  const web3 = getWeb3();
+  return new web3.eth.Contract(MulticallAbi as any, MulticallAddress);
+};
+
+export const multicall = async (callAbi, calls) => {
+  const itf = new Interface(callAbi);
+  const multicallContract = getMulticallContract();
+  const calldata = calls.map((call) => [
+    call.address.toLowerCase(),
+    itf.encodeFunctionData(call.name, call.params),
+  ]);
+  const data = await multicallContract.methods.aggregate(calldata).call();
+
+  return data;
+  // const res = returnData.map((call, i) =>
+  //   itf.decodeFunctionResult(calls[i].name, call)
+  // );
+
+  // return res;
 };
 
 // export const getContract = (abi: any, address: string) => {

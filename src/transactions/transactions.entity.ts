@@ -53,6 +53,8 @@ export class Transaction {
   @Column({ default: false })
   isOwnerCreated: boolean;
 
+  @Column({ default: false })
+  isStaked: boolean;
 
   @BeforeInsert()
   nameToUpperCase() {

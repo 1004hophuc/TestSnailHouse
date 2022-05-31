@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNumber,
   IsNotEmpty,
@@ -39,4 +40,9 @@ export class CreateTransactionDto {
   @IsNumber()
   @IsOptional()
   tokenId;
+
+  @IsBoolean()
+  @IsOptional()
+  @Type(() => Boolean)
+  isStaked?: boolean;
 }
