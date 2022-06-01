@@ -18,10 +18,10 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       envFilePath: ['.development.env', '.env'],
       // load: [configuration],
@@ -42,7 +42,7 @@ import { VotingModule } from './voting/voting.module';
       autoLoadEntities: true,
       logging: true,
     }),
-
+    // ScheduleModule.forRoot(),
     UsersModule,
     TransactionsModule,
     NftModule,

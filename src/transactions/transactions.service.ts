@@ -12,7 +12,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 
 import { getWeb3 } from '../utils/web3';
 
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { getTime, CONFIG, GET_AMOUNT_LAUNCHPAD } from '../config';
 
@@ -173,13 +173,15 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  @Cron('* * * * *')
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async handleCron() {
+    console.log('asdasd');
     if (this?.['IS_IN_CRONJOB']) {
       console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
       return;
     }
     this['IS_IN_CRONJOB'] = true;
+
     try {
       console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
       await this.fetchTrans();
@@ -303,14 +305,18 @@ export class TransactionsService {
 
     const user = await this.getOne(address);
 
+    if (!user) return false;
     if (!user.isStaked) {
       const { stakeFreeze } = await NFTContract.methods
         .getInfoForStaking(user.tokenId)
         .call();
-      await this.transactionsRepository.update(
-        { address: user.address },
+
+      this.transactionsRepository.update(
+        { address },
         { isStaked: stakeFreeze }
       );
+
+      return stakeFreeze;
     }
     return true;
   }

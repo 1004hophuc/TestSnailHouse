@@ -42,11 +42,11 @@ export class ProfitService {
       // Get all DAO user.
       const userDaoList = await this.transactionService.getByStaked(true);
       const totalDaoUser = userDaoList.length;
+
       if (totalDaoUser <= 0) return { message: 'No DAO members' };
 
-      //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
+      //  Calculate ido, s  wap, market, nftLaunchpad, nftGame, seedInvest profit.
       // (70% of dex profit, except swap is 10%)
-
       const idoProfit = profitDao(idoReward, DAO_PROFIT_PERCENT, totalDaoUser);
       const swapProfit = profitDao(
         swapReward,
@@ -188,7 +188,7 @@ export class ProfitService {
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
       const latestReward = await this.rewardsService.findLatestReward();
-      if (!latestReward) return {};
+      if (!latestReward) return { haha: '123' };
 
       const [latestProfit, usersByType, allWithdrawedUsers] = await Promise.all(
         [
@@ -215,15 +215,41 @@ export class ProfitService {
         ]
       );
 
+      // if (!latestProfit)
+      //   return {
+      //     daoProfit: 0,
+      //     daoProfitPercent: 0,
+      //     totalDaoUser: 0,
+      //     profitPerUser: 0,
+      //     totalUserProfit: 0,
+      //     totalWithdraw: totalUserWithdraw,
+      //     withdrawAvailable: totalUserProfit - totalUserWithdraw,
+      //     dateReward: latestReward.dateReward,
+      //     docUrl: usersByType[0].docUrl,
+      //   };
+
       const totalUserWithdraw = allWithdrawedUsers.reduce(
         (sum, element) => (sum += element.amountProfit),
         0
       );
-
       const totalUserProfit = usersByType.reduce(
         (sum, element) => (sum += element.amountProfit),
         0
       );
+
+      if (!latestProfit) {
+        return {
+          daoProfit: 0,
+          daoProfitPercent: 70,
+          totalDaoUser: 0,
+          profitPerUser: 0,
+          totalUserProfit: 0,
+          totalWithdraw: totalUserWithdraw,
+          withdrawAvailable: totalUserProfit - totalUserWithdraw,
+          dateReward: latestReward.dateReward,
+        };
+      }
+
       const {
         dexProfit,
         totalDaoUser,
