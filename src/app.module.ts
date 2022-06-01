@@ -42,7 +42,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       autoLoadEntities: true,
       logging: true,
     }),
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
     UsersModule,
     TransactionsModule,
     NftModule,
