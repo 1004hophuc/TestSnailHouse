@@ -173,9 +173,8 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async handleCron() {
-    console.log('asdasd');
     if (this?.['IS_IN_CRONJOB']) {
       console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
       return;
