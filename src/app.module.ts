@@ -18,6 +18,7 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
+import { BingoModule } from './bingo/bingo.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { VotingModule } from './voting/voting.module';
       //process.env.MONGO_DB,
       entities: [User, Transaction],
       // ssl: true,
+      extra: { "authSource": "admin" },
       autoLoadEntities: true,
       logging: true,
     }),
@@ -53,6 +55,7 @@ import { VotingModule } from './voting/voting.module';
     AirdropsModule,
     MailSubmitModule,
     VotingModule,
+    BingoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
