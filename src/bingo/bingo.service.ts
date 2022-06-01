@@ -109,7 +109,6 @@ export class BingoService {
       }
 
       const PRIVATE_KEY = process.env.KEY_ADMIN;
-      console.log('PRIVATE_KEY:', PRIVATE_KEY)
 
       const swapContract = new web3.eth.Contract(
         SwapAbi as any,
@@ -117,7 +116,6 @@ export class BingoService {
       );
 
       const nonce = await swapContract.methods.nonce().call();
-      console.log('nonce:', nonce)
       const amountInWei = web3.utils.toWei(amount + '');
 
       const hash = web3.utils.keccak256(
@@ -181,7 +179,6 @@ export class BingoService {
   }
 
   async findOne(address: string) {
-    console.log('1 address:', address)
     const bingo = await this.bingoRepository.findOne({
       where: {
         address: address.toLowerCase(),
