@@ -83,26 +83,10 @@ export class ProfitWithdrawerService {
     const isAddress = Web3.utils.isAddress(user);
     if (!isAddress) return true;
 
-    // Check if user has bought NFT
-    const hasBought = await this.transactionService.getOne(user);
-
-    if (!hasBought) return true;
-    const web3 = getWeb3();
-
-    const StakingNFTContract = new web3.eth.Contract(
-      NFTAbi as any,
-      process.env.CONTRACT_NFT
-    );
-
-    // Check if this user has staked NFT.
-    const tokenId = await StakingNFTContract.methods
-      .tokenOfOwnerByIndex(user, 0)
-      .call();
-    if (!tokenId) return true;
-
-    const info = await StakingNFTContract.methods.getToken(tokenId).call();
-
-    return !info.stakeFreeze;
+    // Check if user has Staked NFT
+    const userInfo = await this.transactionService.getOne(user);
+    if (!userInfo) return false;
+    return userInfo.isStaked;
   }
 
   async signWithdrawMessage({ user, type }) {

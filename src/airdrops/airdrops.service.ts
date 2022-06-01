@@ -22,26 +22,16 @@ export class AirdropsService {
     const isAddress = Web3.utils.isAddress(user);
     if (!isAddress) return true;
 
-    // Check if user has bought NFT
-    const hasBought = await this.transactionService.getOne(user);
+    const userInfo = await this.transactionService.getOne(user);
 
-    if (!hasBought) return true;
-    const web3 = getWeb3();
+    // Check if user has not bought
+    if (!userInfo) return true;
 
-    const StakingNFTContract = new web3.eth.Contract(
-      NFTAbi as any,
-      process.env.CONTRACT_NFT
-    );
+    // If has bought already,
+    // Check if user has not staked NFT
+    if (!userInfo.isStaked) return true;
 
-    // Check if this user has staked NFT.
-    const tokenId = await StakingNFTContract.methods
-      .tokenOfOwnerByIndex(user, 0)
-      .call();
-    if (!tokenId) return true;
-
-    const info = await StakingNFTContract.methods.getToken(tokenId).call();
-
-    return !info.stakeFreeze;
+    return false;
   }
 
   async create(createAirdropDto: CreateAirdropDto) {
@@ -116,10 +106,6 @@ export class AirdropsService {
 
   public async getPaginateAirdrops(page: number, limit: number) {
     try {
-      // // Check If this user has not been a dao member yet
-      // const isNotDAO = await this.isNotDaoMember(user);
-      // if (isNotDAO) return;
-
       const [data, total] = await this.airdropRepo.findAndCount({
         order: {
           dateStart: 'ASC',

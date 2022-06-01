@@ -8,6 +8,12 @@ import { UserProfitDto } from './dto/user-profit.dto';
 import { toWei, getWeb3, multicall } from 'src/utils/web3';
 import { getCurrentTime, profitDao } from 'src/utils';
 import { Abi as NFTAbi } from '../contract/NFT';
+import { Abi as LaunchPadABI } from '../contract/LaunchPad';
+
+import { Cron, CronExpression } from '@nestjs/schedule';
+import abiDecoder from 'abi-decoder';
+import { getTime } from 'src/config';
+import axios from 'axios';
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;
@@ -42,11 +48,11 @@ export class ProfitService {
       // Get all DAO user.
       const userDaoList = await this.transactionService.getByStaked(true);
       const totalDaoUser = userDaoList.length;
+
       if (totalDaoUser <= 0) return { message: 'No DAO members' };
 
-      //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
+      //  Calculate ido, s  wap, market, nftLaunchpad, nftGame, seedInvest profit.
       // (70% of dex profit, except swap is 10%)
-
       const idoProfit = profitDao(idoReward, DAO_PROFIT_PERCENT, totalDaoUser);
       const swapProfit = profitDao(
         swapReward,
@@ -188,7 +194,7 @@ export class ProfitService {
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
       const latestReward = await this.rewardsService.findLatestReward();
-      if (!latestReward) return {};
+      if (!latestReward) return { haha: '123' };
 
       const [latestProfit, usersByType, allWithdrawedUsers] = await Promise.all(
         [
@@ -215,15 +221,41 @@ export class ProfitService {
         ]
       );
 
+      // if (!latestProfit)
+      //   return {
+      //     daoProfit: 0,
+      //     daoProfitPercent: 0,
+      //     totalDaoUser: 0,
+      //     profitPerUser: 0,
+      //     totalUserProfit: 0,
+      //     totalWithdraw: totalUserWithdraw,
+      //     withdrawAvailable: totalUserProfit - totalUserWithdraw,
+      //     dateReward: latestReward.dateReward,
+      //     docUrl: usersByType[0].docUrl,
+      //   };
+
       const totalUserWithdraw = allWithdrawedUsers.reduce(
         (sum, element) => (sum += element.amountProfit),
         0
       );
-
       const totalUserProfit = usersByType.reduce(
         (sum, element) => (sum += element.amountProfit),
         0
       );
+
+      if (!latestProfit) {
+        return {
+          daoProfit: 0,
+          daoProfitPercent: 70,
+          totalDaoUser: 0,
+          profitPerUser: 0,
+          totalUserProfit: 0,
+          totalWithdraw: totalUserWithdraw,
+          withdrawAvailable: totalUserProfit - totalUserWithdraw,
+          dateReward: latestReward.dateReward,
+        };
+      }
+
       const {
         dexProfit,
         totalDaoUser,
@@ -385,5 +417,51 @@ export class ProfitService {
 
   async updateUserWithdraw(user: string, type: PROFIT_TYPE) {
     await this.profitRepo.update({ user, type }, { isWithdraw: 1 });
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async handleCron() {
+    if (this?.['IS_IN_CRONJOB']) {
+      console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
+      return;
+    }
+    this['IS_IN_CRONJOB'] = true;
+
+    try {
+      console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
+      await this.fetchLaunchPad();
+    } catch (e) {
+      console.log('cronTransaction failed: ', e);
+    } finally {
+      console.log('\n\n====END THIS ROUND===\n\n');
+      this['IS_IN_CRONJOB'] = false;
+    }
+  }
+
+  async fetchLaunchPad() {
+    const {
+      data: { result },
+    } = await axios.get(process.env.DOMAIN_BSC, {
+      params: {
+        address: process.env.CONTRACT_LAUNCHPAD,
+        apikey: process.env.BSC_API_KEY,
+        action: 'txlist',
+        module: 'account',
+        sort: 'desc',
+
+        // endblock: +lastBlock + 9999,
+      },
+    });
+
+    abiDecoder.addABI(LaunchPadABI);
+
+    const arr = [];
+    result.forEach((item) => {
+      const decodedInput = abiDecoder.decodeMethod(item.input);
+      if (decodedInput?.name === 'buyNFT') arr.push(decodedInput);
+    });
+    // return response.data.result[0];
+
+    return { data: arr };
   }
 }
