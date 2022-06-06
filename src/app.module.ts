@@ -18,10 +18,10 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
+import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       envFilePath: ['.development.env', '.env'],
       // load: [configuration],
@@ -38,6 +38,7 @@ import { VotingModule } from './voting/voting.module';
       // database: process.env.MONGO_DB,
       //process.env.MONGO_DB,
       entities: [User, Transaction],
+      // synchronize: true,
       // ssl: true,
       autoLoadEntities: true,
       logging: true,
@@ -53,6 +54,7 @@ import { VotingModule } from './voting/voting.module';
     AirdropsModule,
     MailSubmitModule,
     VotingModule,
+    DaoElementTransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
