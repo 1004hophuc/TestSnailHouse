@@ -40,7 +40,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       //process.env.MONGO_DB,
       entities: [User, Transaction],
       // ssl: true,
-      extra: { "authSource": "admin" },
+      // extra: { authSource: 'admin' },
       autoLoadEntities: true,
       logging: true,
     }),

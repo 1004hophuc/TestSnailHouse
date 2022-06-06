@@ -1,0 +1,1 @@
+ssh -i  D:\\projects\\key\\product\\eagon.tk_54.179.231.41.pem ubuntu@54.179.231.41 "cd /var/www/api/api.eagon.tk && sudo mv ~/dist.zip . && sudo rm -r dist && sudo unzip -o dist.zip && sudo rm dist.zip && sudo pm2 restart all"

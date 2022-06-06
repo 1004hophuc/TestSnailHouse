@@ -18,7 +18,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "deploy": "npm run build && tar.exe -a -c -f dist.zip dist && scp -i D:\\projects\\key\\product\\eagon.tk_54.179.231.41.pem dist.zip ubuntu@54.179.231.41:~/ && deploy.bat"
   },
   "dependencies": {
     "@ethereumjs/common": "^2.6.4",
