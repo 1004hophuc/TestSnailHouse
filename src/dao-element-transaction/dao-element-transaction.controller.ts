@@ -16,9 +16,4 @@ export class DaoElementTransactionController {
   constructor(
     private readonly daoElementTransactionService: DaoElementTransactionService
   ) {}
-
-  // @Get()
-  // test() {
-  //   return this.daoElementTransactionService.getLaunchpadTransaction();
-  // }
 }

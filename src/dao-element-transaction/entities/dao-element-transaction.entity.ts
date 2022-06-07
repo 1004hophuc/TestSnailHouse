@@ -13,11 +13,15 @@ import { AbstractEntity } from '../../common/entities/index';
 export enum ElementType {
   LAUNCHPAD = 'launchpad',
   MARKET = 'market',
+  ROUTER = 'router',
 }
 
 export enum UnitToken {
   BUSD = 'busd',
   CORK = 'cork',
+  BNB_BUSD = 'bnb_busd',
+  ADO_BNB = 'cork_bnb',
+  ADO_BUSD = 'cork_busd',
 }
 
 @Entity('dao-element-transaction')
@@ -34,9 +38,6 @@ export class DaoElementTransaction extends AbstractEntity {
 
   @Column()
   value: number;
-
-  @Column()
-  unit_token: string;
 
   @Column()
   unit_token_address: string;
