@@ -29,7 +29,7 @@ export class DaoElementTransactionService {
     return 'This action adds a new daoElementTransaction';
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async getDAOElementTransactionJob() {
     try {
       console.log('Start DAO element transaction job ');
