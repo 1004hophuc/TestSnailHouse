@@ -202,7 +202,7 @@ export class TransactionsService {
         action: 'txlist',
         module: 'account',
         sort: 'desc',
-        startblock: +lastBlock.value,
+        startblock: +lastBlock?.value,
         // endblock: +lastBlock + 9999,
       },
     });

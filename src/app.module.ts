@@ -18,7 +18,7 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
-import { BingoModule } from './bingo/bingo.module';
+import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -39,12 +39,19 @@ import { ScheduleModule } from '@nestjs/schedule';
       // database: process.env.MONGO_DB,
       //process.env.MONGO_DB,
       entities: [User, Transaction],
+      // synchronize: true,
       // ssl: true,
       // extra: { authSource: 'admin' },
       autoLoadEntities: true,
       logging: true,
     }),
+<<<<<<< HEAD
     // ScheduleModule.forRoot(),
+=======
+
+    ScheduleModule.forRoot(),
+
+>>>>>>> test-branch
     UsersModule,
     TransactionsModule,
     NftModule,
@@ -55,7 +62,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     AirdropsModule,
     MailSubmitModule,
     VotingModule,
+<<<<<<< HEAD
     BingoModule,
+=======
+    DaoElementTransactionModule,
+>>>>>>> test-branch
   ],
   controllers: [AppController],
   providers: [AppService],
