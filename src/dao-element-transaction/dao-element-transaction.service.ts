@@ -5,6 +5,7 @@ import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transac
 import { UpdateDaoElementTransactionDto } from './dto/update-dao-element-transaction.dto';
 import { Abi as launchpadNFTAbi } from '../contract/LaunchPadNFT';
 import { Abi as marketAbi } from '../contract/Market';
+import { Abi as priceGetterABI } from '../contract/PriceGetter';
 import axios from 'axios';
 import abiDecoder from 'abi-decoder';
 import Promise from 'bluebird';
@@ -16,6 +17,7 @@ import {
 } from './entities/dao-element-transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import BigNumber from 'bignumber.js';
 import { Console } from 'console';
 
 @Injectable()
@@ -33,11 +35,9 @@ export class DaoElementTransactionService {
   async getDAOElementTransactionJob() {
     try {
       console.log('Start DAO element transaction job ');
-      await Promise.all([
-        this.getLaunchpadTransaction(),
-        this.getMarketTransaction(),
-        this.getRouterTransaction(),
-      ]);
+      await this.getLaunchpadTransaction();
+      await this.getMarketTransaction();
+      await this.getRouterTransaction();
       console.log('End DAO element transaction job ');
     } catch (error) {
       console.log(error?.response?.error);
@@ -81,6 +81,7 @@ export class DaoElementTransactionService {
           transaction.hash
         );
         const value = await this.getValueFromTxReceipt(txReceipt, 'uint256');
+
         const insertData = {
           txhash: transaction.hash,
           type: ElementType.LAUNCHPAD,
@@ -95,6 +96,7 @@ export class DaoElementTransactionService {
 
         await this.daoElementTransactionReposity.insert(insertData);
       });
+      return result;
       console.log('DONE LAUNCHPAD JOB !');
     } catch (error) {
       console.log(error?.response?.error);
@@ -104,9 +106,9 @@ export class DaoElementTransactionService {
 
   async getMarketTransaction() {
     try {
-      console.log('MARKET JOB !');
       const web3 = getWeb3();
       const marketContractAddress = process.env.MARKET_CONTRACT;
+      const busdAddress = process.env.BUSD_TOKEN.toLowerCase();
       const marketContract = new web3.eth.Contract(
         marketAbi as any,
         marketContractAddress
@@ -133,6 +135,7 @@ export class DaoElementTransactionService {
             transaction?.transactionHash
           );
           const values = await this.getTotalValueFromTxReceipt(txReceipt);
+
           const insertData = {
             txhash: transaction.transactionHash,
             type: ElementType.MARKET,
@@ -143,11 +146,19 @@ export class DaoElementTransactionService {
           };
 
           await Promise.map(values, async (value) => {
+            let corkValue = value.total;
+
+            if (value.unit_token_address.toLowerCase() === busdAddress) {
+              corkValue = await this.tokenPriceInCork(
+                web3.utils.toWei(value.total + '')
+              );
+            }
             await this.daoElementTransactionReposity.insert({
               ...insertData,
               value: value.total,
               unit_token_address: value.unit_token_address,
               unit_token_name: value.unit_token_name,
+              corkValue,
             });
           });
         }
@@ -162,8 +173,10 @@ export class DaoElementTransactionService {
 
   async getRouterTransaction() {
     try {
-      console.log('ROUTER JOB !');
       const web3 = getWeb3();
+      const bnbBusd = process.env.BNB_BUSD.toLowerCase();
+      const adoBnb = process.env.ADO_BNB.toLowerCase();
+      const adoBusd = process.env.ADO_BUSD.toLowerCase();
       const latestRouterTransaction =
         await this.daoElementTransactionReposity.find({
           where: { type: ElementType.ROUTER },
@@ -202,12 +215,23 @@ export class DaoElementTransactionService {
         };
 
         await Promise.map(values, async (value) => {
-          console.log(value.unit_token_address);
+          let corkValue = 0;
+
+          if (value.unit_token_address.toLowerCase() === adoBnb)
+            corkValue = await this.getLpPriceInCork(adoBnb);
+
+          if (value.unit_token_address.toLowerCase() === bnbBusd)
+            corkValue = await this.getLpPriceInCork(bnbBusd);
+
+          if (value.unit_token_address.toLowerCase() === adoBusd)
+            corkValue = await this.getLpPriceInCork(adoBusd);
+
           await this.daoElementTransactionReposity.insert({
             ...insertData,
             value: value.total,
             unit_token_address: value.unit_token_address,
             unit_token_name: value.unit_token_name,
+            corkValue: +corkValue,
           });
         });
       });
@@ -226,6 +250,7 @@ export class DaoElementTransactionService {
       return;
     }
     const result = await web3.eth.abi.decodeParameter(type, value);
+
     return result;
   }
 
@@ -244,6 +269,7 @@ export class DaoElementTransactionService {
           return;
         }
         const topics = log.topics;
+
         const parsedTopics = await this.parseLogTopic(topics);
 
         if (
@@ -355,5 +381,43 @@ export class DaoElementTransactionService {
       }
     });
     return result;
+  }
+
+  async getTokenPriceInUSD(
+    tokenAddress: string,
+    decimal = 18
+  ): Promise<string | undefined> {
+    const web3 = getWeb3();
+
+    const priceGetterContract = new web3.eth.Contract(
+      priceGetterABI as any,
+      process.env.CONTRACT_PRICE_GETTER
+    );
+
+    if (!web3.utils.isAddress(tokenAddress)) return null;
+
+    const tokenPrices = await priceGetterContract.methods
+      .getLPPrice(tokenAddress, decimal)
+      .call();
+
+    return tokenPrices;
+  }
+
+  async corkPriceToBUSD(): Promise<string> {
+    const corkPrice = await this.getTokenPriceInUSD(process.env.CORK_TOKEN);
+    return corkPrice;
+  }
+
+  async tokenPriceInCork(valueInWei: string): Promise<string> {
+    const corkPrice = await this.corkPriceToBUSD();
+    const busdValueInCork = new BigNumber(valueInWei)
+      .div(new BigNumber(corkPrice))
+      .toString();
+    return busdValueInCork;
+  }
+
+  async getLpPriceInCork(address: string): Promise<string> {
+    const lpPriceInBUSD = await this.getTokenPriceInUSD(address);
+    return await this.tokenPriceInCork(lpPriceInBUSD);
   }
 }

@@ -2,6 +2,11 @@ import { AbstractEntity } from 'src/common/entities';
 import { Column, Entity } from 'typeorm';
 import { AirdropType } from '../dto/create-airdrop.dto';
 
+export enum airdropStatus {
+  PENDING = 'pending',
+  FINISH = 'finish',
+}
+
 @Entity('airdrops')
 export class Airdrop extends AbstractEntity {
   @Column()
@@ -22,4 +27,7 @@ export class Airdrop extends AbstractEntity {
 
   @Column()
   dateEnd: number;
+
+  @Column({ enum: airdropStatus })
+  status: airdropStatus;
 }

@@ -69,8 +69,5 @@ export class ProfitController {
     return this.profitService.profitsTotalType(lowercaseAddress);
   }
 
-  @Get('cronjob')
-  fetchLaunchPad() {
-    return this.profitService.fetchLaunchPad();
-  }
+ 
 }

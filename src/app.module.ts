@@ -18,7 +18,7 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
-import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
+// import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -45,13 +45,9 @@ import { ScheduleModule } from '@nestjs/schedule';
       autoLoadEntities: true,
       logging: true,
     }),
-<<<<<<< HEAD
-    // ScheduleModule.forRoot(),
-=======
 
     ScheduleModule.forRoot(),
 
->>>>>>> test-branch
     UsersModule,
     TransactionsModule,
     NftModule,
@@ -62,11 +58,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AirdropsModule,
     MailSubmitModule,
     VotingModule,
-<<<<<<< HEAD
-    BingoModule,
-=======
-    DaoElementTransactionModule,
->>>>>>> test-branch
+    // DaoElementTransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

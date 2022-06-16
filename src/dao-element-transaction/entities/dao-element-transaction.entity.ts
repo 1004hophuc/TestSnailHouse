@@ -34,10 +34,13 @@ export class DaoElementTransaction extends AbstractEntity {
   block_number: number;
 
   @Column({ enum: ElementType })
-  type: string;
+  type: ElementType;
 
   @Column()
   value: number;
+
+  @Column()
+  corkValue: number;
 
   @Column()
   unit_token_address: string;

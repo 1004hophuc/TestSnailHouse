@@ -16,4 +16,14 @@ export class DaoElementTransactionController {
   constructor(
     private readonly daoElementTransactionService: DaoElementTransactionService
   ) {}
+
+  @Get()
+  getPastEvent() {
+    return this.daoElementTransactionService.getLaunchpadTransaction();
+  }
+
+  @Get('cork-price')
+  getCorkPrice() {
+    return this.daoElementTransactionService.corkPriceToBUSD();
+  }
 }

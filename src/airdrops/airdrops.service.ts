@@ -18,20 +18,14 @@ export class AirdropsService {
     private transactionService: TransactionsService
   ) {}
 
-  async isNotDaoMember(user: string): Promise<boolean> {
+  async isDaoMember(user: string): Promise<boolean> {
+    // DAO member is member that has bought and staked the NFT.
     const isAddress = Web3.utils.isAddress(user);
-    if (!isAddress) return true;
+    if (!isAddress) return false;
 
+    // Check if user has in the transaction list & staked the NFT
     const userInfo = await this.transactionService.getOne(user);
-
-    // Check if user has not bought
-    if (!userInfo) return true;
-
-    // If has bought already,
-    // Check if user has not staked NFT
-    if (!userInfo.isStaked) return true;
-
-    return false;
+    return userInfo && userInfo?.isStaked;
   }
 
   async create(createAirdropDto: CreateAirdropDto) {
@@ -59,13 +53,13 @@ export class AirdropsService {
       if (getCurrentTime() > airdrop.dateEnd) return;
       if (airdrop.dateStart > getCurrentTime()) return;
 
-      // Check If this user has not been a dao member yet
-      const isNotDAO = await this.isNotDaoMember(user.toLowerCase());
-      if (isNotDAO) return;
+      // Check If this user has been a dao member yet
+      const isDAO = await this.isDaoMember(user.toLowerCase());
+      if (!isDAO) return;
 
       if (!web3.utils.isAddress(tokenAddress)) return;
 
-      const PRIVATE_KEY = process.env.KEY_ADMIN;
+      const PRIVATE_KEY = process.env.AIRDROP_KEY_ADMIN;
       const CONTRACT_AIRDROP = process.env.CONTRACT_AIRDROP;
 
       const contract = new web3.eth.Contract(
@@ -125,9 +119,10 @@ export class AirdropsService {
     type: AirdropType,
     user: string
   ) {
-    // Check If this user has not been a dao member yet
-    const isNotDAO = await this.isNotDaoMember(user);
-    if (isNotDAO) return;
+    // Check If this user has been a dao member yet
+    const isDAO = await this.isDaoMember(user);
+    console.log(isDAO);
+    if (!isDAO) return;
     let where = {};
 
     if (type !== AirdropType.ALL) {
@@ -149,8 +144,8 @@ export class AirdropsService {
 
   public async getQuantityAirdropType(user: string) {
     // Check If this user has not been a dao member yet
-    const isNotDAO = await this.isNotDaoMember(user);
-    if (isNotDAO) return;
+    const isDAO = await this.isDaoMember(user);
+    if (!isDAO) return;
 
     const [all, social, airdrop, nft, completetask, p2e, random, registration] =
       await Promise.all([
