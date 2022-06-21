@@ -194,7 +194,7 @@ export class ProfitService {
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
       const latestReward = await this.rewardsService.findLatestReward();
-      if (!latestReward) return { haha: '123' };
+      if (!latestReward) return ;
 
       const [latestProfit, usersByType, allWithdrawedUsers] = await Promise.all(
         [

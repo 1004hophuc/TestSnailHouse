@@ -8,5 +8,6 @@ import { DaoElementTransaction } from './entities/dao-element-transaction.entity
   imports: [TypeOrmModule.forFeature([DaoElementTransaction])],
   controllers: [DaoElementTransactionController],
   providers: [DaoElementTransactionService],
+  exports: [DaoElementTransactionService],
 })
 export class DaoElementTransactionModule {}

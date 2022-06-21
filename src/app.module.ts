@@ -18,8 +18,9 @@ import { ProfitModule } from './profit/profit.module';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { VotingModule } from './voting/voting.module';
-// import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
+import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { StatisticModule } from './statistic/statistic.module';
 
 @Module({
   imports: [
@@ -30,7 +31,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     TypeOrmModule.forRoot({
       type: 'mongodb',
-
       host: process.env.MONGO_HOST,
       port: +process.env.MONGO_PORT,
       username: process.env.MONGO_USERNAME,
@@ -58,7 +58,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     AirdropsModule,
     MailSubmitModule,
     VotingModule,
-    // DaoElementTransactionModule,
+    StatisticModule,
+    DaoElementTransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

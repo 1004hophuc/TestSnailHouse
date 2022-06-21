@@ -19,6 +19,7 @@ import { getTime, CONFIG, GET_AMOUNT_LAUNCHPAD } from '../config';
 import { Abi as LaunchPadABI } from '../contract/LaunchPad';
 import axios from 'axios';
 import { Abi as NFTAbi } from '../contract/NFT';
+import { getMonthTimeRange } from 'src/utils/helper';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
@@ -293,6 +294,32 @@ export class TransactionsService {
     return data[0];
   }
 
+  async getMonthTransactions(month: number) {
+    const { start, end, daysInMonth } = getMonthTimeRange(month);
+    const monthTransactions = await this.transactionsRepository.find({
+      where: {
+        timestamp: { $gt: start * 1000, $lt: end * 1000 },
+      },
+      order: { timestamp: 'ASC' },
+    });
+
+    let startOfDay: number;
+    const transactionPerDay = [...Array(daysInMonth).keys()].map((i) => {
+      startOfDay = start + 86400 * i;
+      const endOfDay = startOfDay + 86399;
+
+      const dayTransaction = monthTransactions.filter((transaction) => {
+        return (
+          transaction.timestamp / 1000 >= startOfDay &&
+          transaction.timestamp / 1000 <= endOfDay
+        );
+      });
+
+      return { time: startOfDay * 1000, value: dayTransaction.length };
+    });
+    return transactionPerDay;
+  }
+
   async getUserStaked(address: string): Promise<boolean> {
     const web3 = getWeb3();
     if (!web3.utils.isAddress(address)) return false;
@@ -305,7 +332,7 @@ export class TransactionsService {
     const user = await this.getOne(address);
 
     if (!user) return false;
-    if (!user.isStaked) {
+    if (!user?.isStaked) {
       const { stakeFreeze } = await NFTContract.methods
         .getInfoForStaking(user.tokenId)
         .call();

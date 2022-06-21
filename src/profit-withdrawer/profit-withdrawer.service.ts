@@ -79,14 +79,14 @@ export class ProfitWithdrawerService {
     return userPending;
   }
 
-  async isDaoMember(user: string) {
+  async isDaoMember(user: string): Promise<boolean> {
+    // DAO member is member that has bought and staked the NFT.
     const isAddress = Web3.utils.isAddress(user);
-    if (!isAddress) return true;
+    if (!isAddress) return false;
 
-    // Check if user has Staked NFT
+    // Check if user has in the transaction list & staked the NFT
     const userInfo = await this.transactionService.getOne(user);
-    if (!userInfo) return false;
-    return userInfo.isStaked;
+    return userInfo && userInfo?.isStaked;
   }
 
   async signWithdrawMessage({ user, type }) {

@@ -61,7 +61,7 @@ export const capitalizeEveryWord = (str: string) =>
  *          toCamelCase('some-mixed_string with spaces_underscores-and-hyphens'); // 'someMixedStringWithSpacesUnderscoresAndHyphens
  */
 export const toCamelCase = (str: string) => {
-  let s =
+  const s =
     str &&
     str
       .match(
@@ -265,6 +265,21 @@ export function getThisMonthInterval(): { start: number; end: number } {
   return {
     start: start.valueOf() / 1000,
     end: end.valueOf() / 1000,
+  };
+}
+
+export function getMonthTimeRange(month: number): {
+  start: number;
+  end: number;
+  daysInMonth: number;
+} {
+  const currentYear = new Date().getUTCFullYear();
+  const start = moment.utc([currentYear, month - 1]);
+  const end = moment(start).endOf('month');
+  return {
+    start: start.unix(),
+    end: end.unix(),
+    daysInMonth: moment(`${currentYear}-${month}`, 'YYYY-MM').daysInMonth(),
   };
 }
 

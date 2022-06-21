@@ -19,7 +19,7 @@ export class DaoElementTransactionController {
 
   @Get()
   getPastEvent() {
-    return this.daoElementTransactionService.getLaunchpadTransaction();
+    return this.daoElementTransactionService.getRouterTransaction();
   }
 
   @Get('cork-price')

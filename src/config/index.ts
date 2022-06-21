@@ -14,9 +14,9 @@ export default () => ({
   chainId: process.env.CHAIN_ID || 97,
   97: {
     appNodes: [
-      'https://nd-961-618-373.p2pify.com/73d53568b2a7e5a856875b9bf8b0fdcb',
-      'https://nd-961-618-373.p2pify.com/73d53568b2a7e5a856875b9bf8b0fdcb',
-      'https://nd-961-618-373.p2pify.com/73d53568b2a7e5a856875b9bf8b0fdcb',
+      'https://bsc-testnet.nodereal.io/v1/29428fcbbb9d4e8eb33e3c98a9b9c9cc',
+      'https://bsc-testnet.nodereal.io/v1/29428fcbbb9d4e8eb33e3c98a9b9c9cc',
+      'https://bsc-testnet.nodereal.io/v1/29428fcbbb9d4e8eb33e3c98a9b9c9cc',
       // 'https://data-seed-prebsc-1-s1.binance.org:8545/',
       // 'https://data-seed-prebsc-2-s2.binance.org:8545/',
       // 'https://data-seed-prebsc-2-s1.binance.org:8545/',

@@ -11,17 +11,17 @@ import {
 import { AbstractEntity } from '../../common/entities/index';
 
 export enum ElementType {
-  LAUNCHPAD = 'launchpad',
+  LAUNCHPAD = 'nftLaunchpad',
   MARKET = 'market',
-  ROUTER = 'router',
+  ROUTER = 'swap',
 }
 
 export enum UnitToken {
   BUSD = 'busd',
   CORK = 'cork',
   BNB_BUSD = 'bnb_busd',
-  ADO_BNB = 'cork_bnb',
-  ADO_BUSD = 'cork_busd',
+  CORK_BNB = 'cork_bnb',
+  CORK_BUSD = 'cork_busd',
 }
 
 @Entity('dao-element-transaction')
@@ -55,7 +55,7 @@ export class DaoElementTransaction extends AbstractEntity {
   to_address: string;
 
   @Column()
-  timestamp: string;
+  timestamp: number;
 
   @Column()
   _created: number;

@@ -43,6 +43,7 @@ export class AirdropsService {
 
   async findAll() {
     const airdrops = await this.airdropRepo.find();
+
     return airdrops;
   }
 
@@ -51,6 +52,7 @@ export class AirdropsService {
       const web3 = getWeb3();
       const airdrop = await this.findOne(airdropId);
       if (getCurrentTime() > airdrop.dateEnd) return;
+
       if (airdrop.dateStart > getCurrentTime()) return;
 
       // Check If this user has been a dao member yet
@@ -121,7 +123,6 @@ export class AirdropsService {
   ) {
     // Check If this user has been a dao member yet
     const isDAO = await this.isDaoMember(user);
-    console.log(isDAO);
     if (!isDAO) return;
     let where = {};
 
