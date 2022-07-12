@@ -48,7 +48,7 @@ import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
       logging: true,
     }),
 
-    // ScheduleModule.forRoot(),
+    ScheduleModule.forRoot(),
 
     UsersModule,
     TransactionsModule,
