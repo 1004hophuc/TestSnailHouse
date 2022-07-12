@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { AbstractEntity } from 'src/common/entities';
 import { Entity, Column } from 'typeorm';
 import { OptionProperty, VoteType } from '../dto/create-voting.dto';
@@ -24,6 +25,9 @@ export class Voting extends AbstractEntity {
 
   @Column()
   voteID: number;
+
+  @Column()
+  isPending: boolean;
 
   @Column()
   options: OptionProperty[];

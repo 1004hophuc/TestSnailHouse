@@ -46,7 +46,7 @@ import { StatisticModule } from './statistic/statistic.module';
       logging: true,
     }),
 
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
 
     UsersModule,
     TransactionsModule,
