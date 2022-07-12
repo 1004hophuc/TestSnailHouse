@@ -55,7 +55,7 @@ export class IDOTransactionsService {
 
   async getByStaked(isStaked) {
     try {
-      const res = await this.idoTransactionsRepository.find({ isStaked });
+      const res = await this.idoTransactionsRepository.find({});
       return res;
     } catch (error) {
       return error;
@@ -84,7 +84,7 @@ export class IDOTransactionsService {
   async findAll(query: QueryIDOTransactionDto) {
     const { page, limit, refCode, address } = query;
 
-    const queryTemp: QueryTransMarket = { isMarket: true };
+    const queryTemp: QueryTransMarket = {};
 
     if (address) {
       queryTemp.address = address.toLowerCase();
@@ -107,7 +107,7 @@ export class IDOTransactionsService {
   async findTransMarket(query: QueryTransMarket) {
     const { address, refCode } = query;
 
-    const queryTemp: QueryTransMarket = { isMarket: true };
+    const queryTemp: QueryTransMarket = {};
 
     if (address) {
       queryTemp.address = address.toLowerCase();
@@ -125,7 +125,7 @@ export class IDOTransactionsService {
   async findMarketTransaction(query: QueryIDOTransactionDto) {
     const { page, limit } = query;
     const [data, count] = await this.idoTransactionsRepository.findAndCount({
-      where: { isMarket: true },
+      where: {},
 
       order: { createdAt: -1 },
       skip: +(page - 1) * +limit,
@@ -210,7 +210,7 @@ export class IDOTransactionsService {
 
   async getAmountByRef(refCode: string) {
     try {
-      const queryTemp = { isMarket: true, refCode: refCode };
+      const queryTemp = { refCode: refCode };
 
       const data = await this.idoTransactionsRepository.find(queryTemp);
 
