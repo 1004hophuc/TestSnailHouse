@@ -13,18 +13,7 @@ import { idoNFTImageService } from './ido-nft-image.service';
 const levelNameMapping = (level) => {
   switch (+level) {
     case 1:
-      return 'Cheese';
-    case 2:
-      return 'Opener';
-    case 3:
-      return 'Wine Glass';
-
-    case 4:
-      return 'Wine Oak';
-
-    case 5:
-      return 'Romanée Conti';
-
+      return 'Chocolate';
     default:
       break;
   }
@@ -33,17 +22,7 @@ const levelNameMapping = (level) => {
 const levelDescriptionMapping = (level) => {
   switch (+level) {
     case 1:
-      return `The color of the background is inspired by the label of Jonnie Walker Whisky. Cheese NFT is presented for a specialist who knows exactly what is mixed with wine will make your taste explode`;
-    case 2:
-      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Opener is presented for a wine taster who knows all about wine all over the world but gives you a taste of just what the doctor ordered';
-    case 3:
-      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Wine Glass is presented for a wine lover who knows which kinds of wine will match your emotion, be a sense friend whenever you need';
-
-    case 4:
-      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Wine Oak is presented for a cellar owner who gives all kindness to wine and makes them become their best status ever';
-
-    case 5:
-      return 'The color of the background is inspired by the label of Jonnie Walker Whisky. NFT Romanée Conti is presented for a wine collector who is touched by wine and understands how wine is worth, collect them by all means';
+      return `By purchasing an NFT IDO card, you can participate in hundreds of IDO projects on Winery DAO. This is a perfect opportunity to be on the whitelist of new potential projects in the easiest way possible. Take advantage of this chance by purchasing NFT IDO right now!`;
 
     default:
       break;

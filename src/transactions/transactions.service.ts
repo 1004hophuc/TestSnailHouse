@@ -20,6 +20,7 @@ import { Abi as LaunchPadABI } from '../contract/LaunchPad';
 import axios from 'axios';
 import { Abi as NFTAbi } from '../contract/NFT';
 import { getMonthTimeRange } from '../utils/helper';
+import { UtilitiesService } from '../utils/sleep-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
@@ -127,37 +128,59 @@ export class TransactionsService {
   }
 
   async createTransaction(createTransactionDto: CreateTransactionDto) {
-    const web3 = getWeb3();
+    try {
+      if (this?.['IS_IN_JOB_CREATE_PATIENT']) {
+        let i = 0;
+        while (i < 50) {
+          if (!this?.['IS_IN_JOB_CREATE_PATIENT']) {
+            break;
+          }
+          console.log(
+            `\n\n====SKIPPP THIS ROUND at ${new Date().getTime()}===\n\n`
+          );
+          await UtilitiesService.prototype.sleep(200);
+          i++;
+        }
+      }
+      this['IS_IN_JOB_CREATE_PATIENT'] = true;
+      const web3 = getWeb3();
 
-    const [transactionVerified, transactionReceipt] = await Promise.all([
-      web3.eth.getTransaction(createTransactionDto.txHash),
-      web3.eth.getTransactionReceipt(createTransactionDto.txHash),
-    ]);
+      const [transactionVerified, transactionReceipt] = await Promise.all([
+        web3.eth.getTransaction(createTransactionDto.txHash),
+        web3.eth.getTransactionReceipt(createTransactionDto.txHash),
+      ]);
 
-    if (
-      transactionVerified.to.toLowerCase() !=
-        process.env.CONTRACT_LAUNCHPAD.toLowerCase() ||
-      !transactionReceipt.status
-    ) {
-      return false;
+      if (
+        transactionVerified.to.toLowerCase() !=
+          process.env.CONTRACT_LAUNCHPAD.toLowerCase() ||
+        !transactionReceipt.status
+      ) {
+        return false;
+      }
+
+      const itemExisted = await this.transactionsRepository.findOne({
+        txHash: createTransactionDto.txHash.toLowerCase(),
+      });
+
+      if (itemExisted) {
+        return false;
+      }
+
+      const item = await this.transactionsRepository.create(
+        createTransactionDto
+      );
+      const data = await this.transactionsRepository.save(item);
+
+      if (createTransactionDto.isMarket && createTransactionDto.tokenId) {
+        await this.nftService.createMetadata(createTransactionDto.tokenId);
+      }
+
+      return data;
+    } catch (error) {
+      console.log('Create transaction error : ', error);
+    } finally {
+      this['IS_IN_JOB_CREATE_PATIENT'] = false;
     }
-
-    const itemExisted = await this.transactionsRepository.findOne({
-      txHash: createTransactionDto.txHash.toLowerCase(),
-    });
-
-    if (itemExisted) {
-      return false;
-    }
-
-    const item = await this.transactionsRepository.create(createTransactionDto);
-    const data = await this.transactionsRepository.save(item);
-
-    if (createTransactionDto.isMarket && createTransactionDto.tokenId) {
-      await this.nftService.createMetadata(createTransactionDto.tokenId);
-    }
-
-    return data;
   }
 
   async getAmountByRef(refCode: string) {
@@ -262,13 +285,13 @@ export class TransactionsService {
       }
     }
 
-    const promises = [];
+    // const promises = [];
 
     for (const item of arr) {
-      promises.push(this.createTransaction(item));
+      await this.createTransaction(item);
     }
 
-    await Promise.all(promises);
+    // await Promise.all(promises);
 
     if (response.data?.result?.length) {
       await this.configService.update(
