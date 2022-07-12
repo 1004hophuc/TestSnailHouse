@@ -25,6 +25,7 @@ import { Abi as IDOLaunchPadABI } from '../contract/IDO-LaunchPad';
 import axios from 'axios';
 import { Abi as IDONFTAbi } from '../contract/IDO-NFT';
 import { getMonthTimeRange } from '../utils/helper';
+import { UtilitiesService } from 'src/utils/sleep-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
@@ -54,7 +55,7 @@ export class IDOTransactionsService {
 
   async getByStaked(isStaked) {
     try {
-      const res = await this.idoTransactionsRepository.find({ isStaked });
+      const res = await this.idoTransactionsRepository.find({});
       return res;
     } catch (error) {
       return error;
@@ -83,7 +84,7 @@ export class IDOTransactionsService {
   async findAll(query: QueryIDOTransactionDto) {
     const { page, limit, refCode, address } = query;
 
-    const queryTemp: QueryTransMarket = { isMarket: true };
+    const queryTemp: QueryTransMarket = {};
 
     if (address) {
       queryTemp.address = address.toLowerCase();
@@ -106,7 +107,7 @@ export class IDOTransactionsService {
   async findTransMarket(query: QueryTransMarket) {
     const { address, refCode } = query;
 
-    const queryTemp: QueryTransMarket = { isMarket: true };
+    const queryTemp: QueryTransMarket = {};
 
     if (address) {
       queryTemp.address = address.toLowerCase();
@@ -124,7 +125,7 @@ export class IDOTransactionsService {
   async findMarketTransaction(query: QueryIDOTransactionDto) {
     const { page, limit } = query;
     const [data, count] = await this.idoTransactionsRepository.findAndCount({
-      where: { isMarket: true },
+      where: {},
 
       order: { createdAt: -1 },
       skip: +(page - 1) * +limit,
@@ -134,60 +135,82 @@ export class IDOTransactionsService {
   }
 
   async createTransaction(createTransactionDto: CreateIDOTransactionDto) {
-    const web3 = getWeb3();
+    try {
+      if (this?.['IS_IN_JOB_CREATE_METADATA']) {
+        let i = 0;
+        while (i < 50) {
+          if (!this?.['IS_IN_JOB_CREATE_METADATA']) {
+            break;
+          }
+          console.log(
+            `\n\n====SKIPPP THIS ROUND at ${new Date().getTime()}===\n\n`
+          );
+          await UtilitiesService.prototype.sleep(200);
+          i++;
+        }
+      }
+      this['IS_IN_JOB_CREATE_METADATA'] = true;
+      const web3 = getWeb3();
 
-    abiDecoder.addABI(IDOLaunchPadABI);
-    const [transactionVerified, transactionReceipt] = await Promise.all([
-      web3.eth.getTransaction(createTransactionDto.txHash),
-      web3.eth.getTransactionReceipt(createTransactionDto.txHash),
-    ]);
+      abiDecoder.addABI(IDOLaunchPadABI);
+      const [transactionVerified, transactionReceipt] = await Promise.all([
+        web3.eth.getTransaction(createTransactionDto.txHash),
+        web3.eth.getTransactionReceipt(createTransactionDto.txHash),
+      ]);
 
-    const [realAmount, realTokenId] = await Promise.all([
-      +(await web3.eth.abi.decodeParameter(
-        'uint256',
-        transactionReceipt.logs[0].data
-      )),
-      +(await web3.eth.abi.decodeParameter(
-        'uint256',
-        transactionReceipt.logs[4].data
-      )),
-    ]);
+      const [realAmount, realTokenId] = await Promise.all([
+        +(await web3.eth.abi.decodeParameter(
+          'uint256',
+          transactionReceipt.logs[0].data
+        )),
+        +(await web3.eth.abi.decodeParameter(
+          'uint256',
+          transactionReceipt.logs[4].data
+        )),
+      ]);
 
-    const realLaunchPadId = abiDecoder.decodeMethod(transactionVerified.input);
-    createTransactionDto.amount = realAmount / 1e18;
-    createTransactionDto.launchpadId = +realLaunchPadId?.params[0]?.value;
-    createTransactionDto.tokenId = +realTokenId;
+      const realLaunchPadId = abiDecoder.decodeMethod(
+        transactionVerified.input
+      );
+      createTransactionDto.amount = realAmount / 1e18;
+      createTransactionDto.launchpadId = +realLaunchPadId?.params[0]?.value;
+      createTransactionDto.tokenId = +realTokenId;
 
-    if (
-      transactionVerified.to.toLowerCase() !=
-        process.env.CONTRACT_IDO_LAUNCHPAD.toLowerCase() ||
-      !transactionReceipt.status
-    ) {
-      return false;
+      if (
+        transactionVerified.to.toLowerCase() !=
+          process.env.CONTRACT_IDO_LAUNCHPAD.toLowerCase() ||
+        !transactionReceipt.status
+      ) {
+        return false;
+      }
+
+      const itemExisted = await this.idoTransactionsRepository.findOne({
+        txHash: createTransactionDto.txHash.toLowerCase(),
+      });
+
+      if (itemExisted) {
+        return false;
+      }
+
+      const item = await this.idoTransactionsRepository.create(
+        createTransactionDto
+      );
+      const data = await this.idoTransactionsRepository.save(item);
+      if (realLaunchPadId?.name === 'buyNFT' && createTransactionDto.tokenId) {
+        await this.idoNFTService.createMetadata(createTransactionDto.tokenId);
+      }
+
+      return data;
+    } catch (error) {
+      console.log('Create transaction err : ', error);
+    } finally {
+      this['IS_IN_JOB_CREATE_METADATA'] = false;
     }
-
-    const itemExisted = await this.idoTransactionsRepository.findOne({
-      txHash: createTransactionDto.txHash.toLowerCase(),
-    });
-
-    if (itemExisted) {
-      return false;
-    }
-
-    const item = await this.idoTransactionsRepository.create(
-      createTransactionDto
-    );
-    const data = await this.idoTransactionsRepository.save(item);
-    if (realLaunchPadId?.name === 'buyNFT' && createTransactionDto.tokenId) {
-      await this.idoNFTService.createMetadata(createTransactionDto.tokenId);
-    }
-
-    return data;
   }
 
   async getAmountByRef(refCode: string) {
     try {
-      const queryTemp = { isMarket: true, refCode: refCode };
+      const queryTemp = { refCode: refCode };
 
       const data = await this.idoTransactionsRepository.find(queryTemp);
 
@@ -295,13 +318,13 @@ export class IDOTransactionsService {
       }
     }
 
-    const promises = [];
+    // const promises = [];
 
     for (const item of arr) {
-      promises.push(this.createTransaction(item));
+      await this.createTransaction(item);
     }
 
-    await Promise.all(promises);
+    // await Promise.all(promises);
 
     if (response.data?.result?.length) {
       await this.configService.update(
