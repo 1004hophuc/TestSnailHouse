@@ -199,7 +199,7 @@ export class IDOTransactionsService {
     } catch (e) {}
   }
 
-  @Cron('* * * * *')
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async handleCron() {
     if (this?.['IS_IN_CRONJOB']) {
       console.log(
