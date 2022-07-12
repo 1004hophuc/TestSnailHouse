@@ -21,6 +21,8 @@ import { VotingModule } from './voting/voting.module';
 import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { StatisticModule } from './statistic/statistic.module';
+import { IdoNftModule } from './ido-nft/ido-nft.module';
+import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
 
 @Module({
   imports: [
@@ -60,6 +62,8 @@ import { StatisticModule } from './statistic/statistic.module';
     VotingModule,
     StatisticModule,
     DaoElementTransactionModule,
+    IdoNftModule,
+    IdoTransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

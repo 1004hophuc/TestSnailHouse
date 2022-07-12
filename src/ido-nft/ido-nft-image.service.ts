@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
 import { Repository } from 'typeorm';
-import { NFTImage } from './nft-image.entity';
+import { IDONFTImage } from './ido-nft-image.entity';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { getWeb3 } from '../utils/web3';
 
 import { Abi as NFTAbi } from '../contract/NFT';
+import BBPromise from 'bluebird';
 
-import { QueryNFTImageDto } from './dto/query-nft-image.dto';
+import { QueryIDONFTImageDto } from './dto/query-nft-image.dto';
 
 interface QueryImage {
   level: number;
@@ -16,21 +17,21 @@ interface QueryImage {
 }
 
 @Injectable()
-export class NftImageService {
+export class idoNFTImageService {
   constructor(
-    @InjectRepository(NFTImage)
-    private nftImageRepository: Repository<NFTImage>
+    @InjectRepository(IDONFTImage)
+    private idoNFTImageRepository: Repository<IDONFTImage>
   ) {}
 
-  async getByLevel(query: QueryNFTImageDto): Promise<any> {
-    const { page = 1, limit = 10000, level, isSold } = query;
+  async getByLevel(query: QueryIDONFTImageDto): Promise<any> {
+    const { page = 1, limit = 10000, level = 1, isSold } = query;
 
     const queryWhere: QueryImage = { level: +level };
     if (isSold == 0 || isSold == 1) {
       queryWhere.isSold = !!isSold;
     }
 
-    const [data, count] = await this.nftImageRepository.findAndCount({
+    const [data, count] = await this.idoNFTImageRepository.findAndCount({
       where: queryWhere,
       order: { imageId: 1 },
       skip: +(page - 1) * +limit,
@@ -40,7 +41,7 @@ export class NftImageService {
   }
 
   async getDetailImage(imageId: number): Promise<any> {
-    const data = await this.nftImageRepository.findOne({
+    const data = await this.idoNFTImageRepository.findOne({
       imageId: +imageId,
     });
 
@@ -53,9 +54,10 @@ export class NftImageService {
         return;
       }
 
-      for (const item of data) {
-        await this.nftImageRepository.insert({ ...item, isSold: false });
-      }
+      await BBPromise.map(data, async (item) => {
+        await this.idoNFTImageRepository.insert({ ...item, isSold: false });
+      });
+
       return true;
     } catch (e) {
       console.log('init data err: ', e);
@@ -66,7 +68,7 @@ export class NftImageService {
     try {
       if (imageId == undefined || imageId == null) return false;
 
-      await this.nftImageRepository.update({ imageId }, { isSold });
+      await this.idoNFTImageRepository.update({ imageId }, { isSold });
 
       return true;
     } catch (e) {

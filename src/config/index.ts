@@ -6,6 +6,7 @@ export const HISTORY_TYPE = {
 
 export const CONFIG = {
   LAST_BLOCK: 'last_block',
+  LAST_IDO_BLOCK: 'last_ido_block',
 };
 
 export default () => ({
@@ -60,4 +61,8 @@ export const GET_AMOUNT_LAUNCHPAD = {
   2: 5000,
   3: 10000,
   4: 20000,
+};
+
+export const GET_IDO_AMOUNT_LAUNCHPAD = {
+  0: 100,
 };

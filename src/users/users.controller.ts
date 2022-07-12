@@ -22,7 +22,7 @@ export class UsersController {
           status: HttpStatus.FORBIDDEN,
           error: 'Is not valid address',
         },
-        500,
+        500
       );
     }
     return {
@@ -40,7 +40,7 @@ export class UsersController {
           status: HttpStatus.FORBIDDEN,
           error: 'Is not valid address',
         },
-        500,
+        500
       );
     }
     return {
