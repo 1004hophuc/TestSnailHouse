@@ -174,7 +174,7 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     if (this?.['IS_IN_CRONJOB']) {
       console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
