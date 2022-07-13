@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IDOTransaction } from './ido-transaction.entity';
+import { IDOTransaction, TransactionMethod } from './ido-transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
@@ -47,6 +47,16 @@ export class IDOTransactionsService {
   async getAll() {
     try {
       const res = await this.idoTransactionsRepository.find();
+      return res;
+    } catch (error) {
+      return error;
+    }
+  }
+  async findByTokenId(id: string) {
+    try {
+      const res = await this.idoTransactionsRepository.findOne({
+        where: { tokenId: id },
+      });
       return res;
     } catch (error) {
       return error;
@@ -136,20 +146,6 @@ export class IDOTransactionsService {
 
   async createTransaction(createTransactionDto: CreateIDOTransactionDto) {
     try {
-      if (this?.['IS_IN_JOB_CREATE_METADATA']) {
-        let i = 0;
-        while (i < 50) {
-          if (!this?.['IS_IN_JOB_CREATE_METADATA']) {
-            break;
-          }
-          console.log(
-            `\n\n====SKIPPP THIS ROUND at ${new Date().getTime()}===\n\n`
-          );
-          await UtilitiesService.prototype.sleep(200);
-          i++;
-        }
-      }
-      this['IS_IN_JOB_CREATE_METADATA'] = true;
       const web3 = getWeb3();
 
       abiDecoder.addABI(IDOLaunchPadABI);
@@ -158,23 +154,38 @@ export class IDOTransactionsService {
         web3.eth.getTransactionReceipt(createTransactionDto.txHash),
       ]);
 
-      const [realAmount, realTokenId] = await Promise.all([
-        +(await web3.eth.abi.decodeParameter(
-          'uint256',
-          transactionReceipt.logs[0].data
-        )),
-        +(await web3.eth.abi.decodeParameter(
-          'uint256',
-          transactionReceipt.logs[4].data
-        )),
-      ]);
-
       const realLaunchPadId = abiDecoder.decodeMethod(
         transactionVerified.input
       );
+      const action = realLaunchPadId?.name;
+      const [realAmount, realTokenId] = await Promise.all([
+        action === 'buyNFT'
+          ? +(await web3.eth.abi.decodeParameter(
+              'uint256',
+              transactionReceipt.logs[0].data
+            ))
+          : 0,
+        +(await web3.eth.abi.decodeParameter(
+          'uint256',
+          action === 'buyNFT'
+            ? transactionReceipt.logs[4].data
+            : transactionReceipt.logs[2].data
+        )),
+      ]);
+      if (
+        realLaunchPadId?.name !== 'buyNFT' &&
+        realLaunchPadId?.name !== 'sentNFT'
+      ) {
+        return false;
+      }
+
       createTransactionDto.amount = realAmount / 1e18;
       createTransactionDto.launchpadId = +realLaunchPadId?.params[0]?.value;
       createTransactionDto.tokenId = +realTokenId;
+      createTransactionDto.method =
+        realLaunchPadId?.name === 'buyNFT'
+          ? TransactionMethod.BUY_NFT
+          : TransactionMethod.SEND_NFT;
 
       if (
         transactionVerified.to.toLowerCase() !=
@@ -196,15 +207,16 @@ export class IDOTransactionsService {
         createTransactionDto
       );
       const data = await this.idoTransactionsRepository.save(item);
-      if (realLaunchPadId?.name === 'buyNFT' && createTransactionDto.tokenId) {
-        await this.idoNFTService.createMetadata(createTransactionDto.tokenId);
+      if (createTransactionDto.tokenId) {
+        await this.idoNFTService.createMetadata(
+          createTransactionDto.tokenId,
+          createTransactionDto.launchpadId
+        );
       }
 
       return data;
     } catch (error) {
       console.log('Create transaction err : ', error);
-    } finally {
-      this['IS_IN_JOB_CREATE_METADATA'] = false;
     }
   }
 
@@ -223,31 +235,10 @@ export class IDOTransactionsService {
   }
 
   @Cron(CronExpression.EVERY_30_SECONDS)
-  async handleCron() {
-    if (this?.['IS_IN_CRONJOB']) {
-      console.log(
-        `\n\n====SKIPPP THIS ROUND (IDO MARKET)  at ${getTime(
-          new Date()
-        )}===\n\n`
-      );
-      return;
-    }
-    this['IS_IN_CRONJOB'] = true;
-
-    try {
-      console.log(
-        `\n\n====START THIS ROUND (IDO MARKET) at ${getTime(new Date())}===\n\n`
-      );
-      await this.fetchTrans();
-    } catch (e) {
-      console.log('cronTransaction (IDO MARKET)  failed: ', e);
-    } finally {
-      console.log('\n\n====END THIS ROUND (IDO MARKET) ===\n\n');
-      this['IS_IN_CRONJOB'] = false;
-    }
-  }
-
   async fetchTrans() {
+    console.log(
+      `\n\n====START THIS ROUND (IDO) at ${getTime(new Date())}===\n\n`
+    );
     const lastIdoBlock = await this.configService.findOne(
       CONFIG.LAST_IDO_BLOCK
     );
@@ -293,7 +284,7 @@ export class IDOTransactionsService {
           newData.isOwnerCreated = true;
           newData.refCode = returnValues.refCode;
           newData.amount = +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = +returnValues.launchIndex + 1;
+          newData.level = 1;
           newData.type = 'ido-market';
           newData.isMarket = false;
 
@@ -308,7 +299,7 @@ export class IDOTransactionsService {
           newData.tokenId = +returnValues.nftId;
           newData.refCode = returnValues.refCode;
           newData.amount = +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = +returnValues.launchIndex + 1;
+          newData.level = 1;
           newData.type = 'ido-market';
           newData.isOwnerCreated = false;
           newData.isMarket = false;
@@ -332,6 +323,7 @@ export class IDOTransactionsService {
         `${response.data?.result[0].blockNumber}`
       );
     }
+    console.log('\n\n====END THIS ROUND (IDO)===\n\n');
   }
 
   async fetchEvent(name: string, blockNumber: string) {

@@ -41,6 +41,10 @@ export class CreateIDOTransactionDto {
   @IsOptional()
   tokenId;
 
+  @IsString()
+  @IsOptional()
+  method;
+
   @IsBoolean()
   @IsOptional()
   @Type(() => Boolean)

@@ -157,7 +157,10 @@ export const Abi = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
+    inputs: [
+      { internalType: 'address', name: '', type: 'address' },
+      { internalType: 'uint256', name: '', type: 'uint256' },
+    ],
     name: 'boughtCount',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
@@ -208,7 +211,11 @@ export const Abi = [
       { internalType: 'string', name: 'refCode', type: 'string' },
       { internalType: 'uint256', name: 'level', type: 'uint256' },
       { internalType: 'address', name: 'user', type: 'address' },
-      { internalType: 'enum LaunchpadNFT.OwnBy', name: 'ownBy', type: 'uint8' },
+      {
+        internalType: 'enum WineryLaunchpadIDONFT.OwnBy',
+        name: 'ownBy',
+        type: 'uint8',
+      },
       { internalType: 'uint256', name: 'robiBoost', type: 'uint256' },
       { internalType: 'uint256', name: 'createTimestamp', type: 'uint256' },
       { internalType: 'uint256', name: 'launchIndex', type: 'uint256' },
@@ -256,13 +263,6 @@ export const Abi = [
   {
     inputs: [{ internalType: 'uint256', name: '_index', type: 'uint256' }],
     name: 'leftToSell',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: '_index', type: 'uint256' }],
-    name: 'leftToSend',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',

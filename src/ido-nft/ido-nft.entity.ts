@@ -7,6 +7,11 @@ import {
   BeforeInsert,
 } from 'typeorm';
 
+export enum LaunchPadIndex {
+  BUY_NFT = 0,
+  SEND_NFT = 1,
+}
+
 @Entity('ido-nft')
 export class IDONFT {
   @ObjectIdColumn() id: ObjectID;
@@ -18,7 +23,6 @@ export class IDONFT {
   @Column({ default: 1 })
   level: number;
 
-  @Index({ unique: true })
   @Column()
   tokenOwner: string;
 
@@ -30,6 +34,9 @@ export class IDONFT {
 
   @Column()
   description: string;
+
+  @Column({ enum: LaunchPadIndex })
+  launchpad_index: number;
 
   @Column()
   createdAt: number;

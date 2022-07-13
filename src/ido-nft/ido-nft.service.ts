@@ -10,20 +10,37 @@ import { Abi as IDONFTAbi } from '../contract/IDO-NFT';
 
 import { idoNFTImageService } from './ido-nft-image.service';
 
-const levelNameMapping = (level) => {
-  switch (+level) {
-    case 1:
+const idoLaunchPadNameMapping = (index) => {
+  switch (+index) {
+    case 0:
       return 'Chocolate';
+    case 1:
+      return 'White';
     default:
       break;
   }
 };
 
-const levelDescriptionMapping = (level) => {
-  switch (+level) {
+const idoLaunchPadDescriptionMapping = (index) => {
+  switch (+index) {
+    case 0:
+      return `By purchasing an NFT IDO card, you can participate in hundreds of IDO projects on Winery DAO. This is a perfect opportunity to be on the whitelist of new potential projects in the easiest way possible. Take advantage of this chance by purchasing NFT IDO right now!`;
+
     case 1:
       return `By purchasing an NFT IDO card, you can participate in hundreds of IDO projects on Winery DAO. This is a perfect opportunity to be on the whitelist of new potential projects in the easiest way possible. Take advantage of this chance by purchasing NFT IDO right now!`;
 
+    default:
+      break;
+  }
+};
+
+const idoLaunchPadImageUriMapping = (index) => {
+  switch (+index) {
+    case 0:
+      return 'https://nftmarket.winerydao.day/upload/DAO_0.png';
+
+    case 1:
+      return 'https://nftmarket.winerydao.day/upload/NFTCARD_WHITE.png';
     default:
       break;
   }
@@ -50,19 +67,20 @@ export class idoNFTService {
   async getMetadata(id: string): Promise<any> {
     try {
       const data = await this.idoNFTRepository.findOne({ tokenId: +id });
+
       if (data) {
-        data.name = levelNameMapping(data.level);
-        data.description = levelDescriptionMapping(data.level);
+        data.name = idoLaunchPadNameMapping(data.level);
+        data.description = idoLaunchPadDescriptionMapping(data.level);
 
         delete data.id;
         return data;
       }
-      const newData = await this.createMetadata(id);
+      const newData = await this.createMetadata(id, data.launchpad_index);
 
       delete newData.id;
 
-      newData.name = levelNameMapping(newData.level);
-      newData.description = levelDescriptionMapping(newData.level);
+      newData.name = idoLaunchPadNameMapping(newData.level);
+      newData.description = idoLaunchPadDescriptionMapping(newData.level);
 
       return newData;
     } catch (e) {
@@ -70,7 +88,11 @@ export class idoNFTService {
     }
   }
 
-  async createMetadata(id: string, imageId?: number): Promise<Metadata> {
+  async createMetadata(
+    id: string,
+    launchpadIndex: number,
+    imageId?: number
+  ): Promise<Metadata> {
     try {
       const web3 = getWeb3();
 
@@ -81,35 +103,17 @@ export class idoNFTService {
 
       const tokenInfo = await contract.methods.getToken(+id).call();
 
-      let chooseImage: any = {};
-
-      // Xử lý dataImage
-      if (imageId) {
-        const image = await this.idoNFTImageService.getDetailImage(+imageId);
-        if (!image.isSold) {
-          chooseImage = image;
-        } else {
-          chooseImage = await this.getRandomImageNotSold(+tokenInfo?.level);
-        }
-      } else {
-        chooseImage = await this.getRandomImageNotSold(+tokenInfo?.level);
-      }
-
       const item = await this.idoNFTRepository.create({
         tokenId: +id,
         tokenOwner: tokenInfo.tokenOwner,
         level: +tokenInfo.level,
-        image: chooseImage?.image,
+        image: idoLaunchPadImageUriMapping(launchpadIndex),
         name: tokenInfo.name,
         description: tokenInfo.description,
+        launchpad_index: launchpadIndex,
       });
 
-      console.log(chooseImage?.imageId);
-
-      const [newData] = await Promise.all([
-        this.idoNFTRepository.save(item),
-        this.idoNFTImageService.updateStatusImage(chooseImage?.imageId, true),
-      ]);
+      const [newData] = await Promise.all([this.idoNFTRepository.save(item)]);
 
       return newData;
     } catch (e) {

@@ -7,6 +7,10 @@ import {
   BeforeInsert,
 } from 'typeorm';
 
+export enum TransactionMethod {
+  BUY_NFT = 'buy_nft',
+  SEND_NFT = 'send_nft',
+}
 @Entity('ido-transactions')
 export class IDOTransaction {
   @ObjectIdColumn() id: ObjectID;
@@ -49,6 +53,9 @@ export class IDOTransaction {
 
   @Column({ default: 0 })
   launchpadId: number;
+
+  @Column({ enum: TransactionMethod })
+  method: string;
 
   @Column({ default: false })
   isOwnerCreated: boolean;

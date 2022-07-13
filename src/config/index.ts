@@ -65,4 +65,5 @@ export const GET_AMOUNT_LAUNCHPAD = {
 
 export const GET_IDO_AMOUNT_LAUNCHPAD = {
   0: 100,
+  1: 0,
 };
