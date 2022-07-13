@@ -36,7 +36,7 @@ export class DaoElementTransactionService {
   async getDAOElementTransactionJob() {
     try {
       console.log('Start DAO element transaction job ');
-      // await this.getLaunchpadTransaction();
+      await this.getLaunchpadTransaction();
       await this.getMarketTransaction();
       await this.getRouterTransaction();
       console.log('End DAO element transaction job ');

@@ -5,15 +5,9 @@ import { TransactionsService } from 'src/transactions/transactions.service';
 import { Repository } from 'typeorm';
 import { Profit, PROFIT_TYPE } from './entities/profit.entity';
 import { UserProfitDto } from './dto/user-profit.dto';
-import { toWei, getWeb3, multicall } from 'src/utils/web3';
+import { toWei } from 'src/utils/web3';
 import { getCurrentTime, profitDao } from 'src/utils';
-import { Abi as NFTAbi } from '../contract/NFT';
-import { Abi as LaunchPadABI } from '../contract/LaunchPad';
-
 import { Cron, CronExpression } from '@nestjs/schedule';
-import abiDecoder from 'abi-decoder';
-import { getTime } from 'src/config';
-import axios from 'axios';
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;
@@ -27,9 +21,8 @@ export class ProfitService {
     private readonly rewardsService: RewardsService
   ) {}
 
-  // @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
+  @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
   async calculateProfit(id: string) {
-    const web3 = getWeb3();
     try {
       //  Get dex profit
       const itemReward = await this.rewardsService.findOne(id);
@@ -51,7 +44,7 @@ export class ProfitService {
 
       if (totalDaoUser <= 0) return { message: 'No DAO members' };
 
-      //  Calculate ido, s  wap, market, nftLaunchpad, nftGame, seedInvest profit.
+      //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
       // (70% of dex profit, except swap is 10%)
       const idoProfit = profitDao(idoReward, DAO_PROFIT_PERCENT, totalDaoUser);
       const swapProfit = profitDao(
@@ -194,10 +187,11 @@ export class ProfitService {
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
       const latestReward = await this.rewardsService.findLatestReward();
-      if (!latestReward) return ;
 
-      const [latestProfit, usersByType, allWithdrawedUsers] = await Promise.all(
-        [
+      if (!latestReward) return;
+
+      const [userLatestProfit, usersByType, allWithdrawedUsers, latestProfit] =
+        await Promise.all([
           await this.profitRepo.findOne({
             where: {
               user,
@@ -218,21 +212,28 @@ export class ProfitService {
               isWithdraw: 1,
             },
           }),
-        ]
-      );
 
-      // if (!latestProfit)
-      //   return {
-      //     daoProfit: 0,
-      //     daoProfitPercent: 0,
-      //     totalDaoUser: 0,
-      //     profitPerUser: 0,
-      //     totalUserProfit: 0,
-      //     totalWithdraw: totalUserWithdraw,
-      //     withdrawAvailable: totalUserProfit - totalUserWithdraw,
-      //     dateReward: latestReward.dateReward,
-      //     docUrl: usersByType[0].docUrl,
-      //   };
+          await this.profitRepo.findOne({
+            where: {
+              type,
+              dateReward: latestReward.dateReward,
+            },
+          }),
+        ]);
+
+      if (!userLatestProfit) {
+        return {
+          daoProfit: 0,
+          daoProfitPercent: 0,
+          totalDaoUser: 0,
+          profitPerUser: 0,
+          totalUserProfit: 0,
+          totalWithdraw: 0,
+          withdrawAvailable: 0,
+          dateReward: latestReward.dateReward,
+          docUrl: latestProfit.docUrl,
+        };
+      }
 
       const totalUserWithdraw = allWithdrawedUsers.reduce(
         (sum, element) => (sum += element.amountProfit),
@@ -243,26 +244,13 @@ export class ProfitService {
         0
       );
 
-      if (!latestProfit) {
-        return {
-          daoProfit: 0,
-          daoProfitPercent: 70,
-          totalDaoUser: 0,
-          profitPerUser: 0,
-          totalUserProfit: 0,
-          totalWithdraw: totalUserWithdraw,
-          withdrawAvailable: totalUserProfit - totalUserWithdraw,
-          dateReward: latestReward.dateReward,
-        };
-      }
-
       const {
         dexProfit,
         totalDaoUser,
         daoProfitPercent,
         amountProfit,
         docUrl,
-      } = latestProfit;
+      } = userLatestProfit;
 
       const data = {
         daoProfit: dexProfit,

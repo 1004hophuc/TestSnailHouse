@@ -27,6 +27,11 @@ export class VotingController {
     return this.votingService.findAll();
   }
 
+  @Get('voting-transactions')
+  crawlVotingTransaction() {
+    return this.votingService.crawlVotingTransaction();
+  }
+
   @Get('pagination')
   getPaginate(@Query() query: QueryDto) {
     return this.votingService.getPaginate(query);

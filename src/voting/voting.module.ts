@@ -3,9 +3,10 @@ import { VotingService } from './voting.service';
 import { VotingController } from './voting.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Voting } from './entities/voting.entity';
+import { ConfigurationModule } from 'src/configuration/configuration.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Voting])],
+  imports: [TypeOrmModule.forFeature([Voting]), ConfigurationModule],
   controllers: [VotingController],
   providers: [VotingService],
   exports: [VotingService],

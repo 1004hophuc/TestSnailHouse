@@ -30,6 +30,11 @@ export class ConfigurationController {
     return this.configurationService.findOne(name);
   }
 
+  @Post('mint-nft')
+  mintNft() {
+    return this.configurationService.mintNft();
+  }
+
   // @Patch(':id')
   // update(
   //   @Param('id') id: string,
