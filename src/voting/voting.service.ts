@@ -22,7 +22,7 @@ export class VotingService {
     const createVote = this.votingRepo.create(createVotingDto);
     delete createVote.isPending;
 
-    let voteID = (await this.configurationService.findOne('voteid')).value;
+    let voteID = (await this.configurationService.findOne('voteid'))?.value;
 
     if (!voteID) {
       await this.configurationService.create({
