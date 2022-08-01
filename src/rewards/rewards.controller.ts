@@ -49,8 +49,8 @@ export class RewardsController {
     });
   }
 
-  @Delete(':timestamp')
-  remove(@Param('timestamp') timestamp: string) {
-    return this.rewardsService.remove(+timestamp);
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.rewardsService.remove(id);
   }
 }

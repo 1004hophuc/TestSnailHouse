@@ -12,7 +12,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 
 import { getWeb3 } from '../utils/web3';
 
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
 
 import {
   getTime,
@@ -235,94 +235,103 @@ export class IDOTransactionsService {
   }
 
   @Cron(CronExpression.EVERY_30_SECONDS)
+  // @Timeout(1000)
   async fetchTrans() {
     console.log(
       `\n\n====START THIS ROUND (IDO) at ${getTime(new Date())}===\n\n`
     );
-    const lastIdoBlock = await this.configService.findOne(
-      CONFIG.LAST_IDO_BLOCK
-    );
 
-    const response = await axios.get(process.env.DOMAIN_BSC, {
-      params: {
-        address: process.env.CONTRACT_IDO_LAUNCHPAD,
-        apikey: process.env.BSC_API_KEY,
-        action: 'txlist',
-        module: 'account',
-        sort: 'desc',
-        startblock: +lastIdoBlock?.value,
-        // endblock: +lastBlock + 9999,
-      },
-    });
+    try {
+      const lastIdoBlock = await this.configService.findOne(
+        CONFIG.LAST_IDO_BLOCK
+      );
 
-    abiDecoder.addABI(IDOLaunchPadABI);
+      const response = await axios.get(process.env.DOMAIN_BSC, {
+        params: {
+          address: process.env.CONTRACT_IDO_LAUNCHPAD,
+          apikey: process.env.BSC_API_KEY,
+          action: 'txlist',
+          module: 'account',
+          sort: 'desc',
+          startblock: +lastIdoBlock?.value,
+          // endblock: +lastBlock + 9999,
+        },
+      });
+      console.log('response:', response.data?.result?.length);
+      abiDecoder.addABI(IDOLaunchPadABI);
 
-    const arr = [];
+      const arr = [];
 
-    for (const item of response.data?.result) {
-      const data = abiDecoder.decodeMethod(item.input);
+      for (const item of response.data?.result) {
+        const data = abiDecoder.decodeMethod(item.input);
 
-      const newData: any = {
-        block: item.blockNumber,
-        txHash: item.hash,
-        timestamp: +item.timeStamp * 1000,
-        from: item.from.toLowerCase(),
-      };
+        const newData: any = {
+          block: item.blockNumber,
+          txHash: item.hash,
+          timestamp: +item.timeStamp * 1000,
+          from: item.from.toLowerCase(),
+        };
 
-      if (item.txreceipt_status == 1) {
-        if (data?.name == 'sentNFT') {
-          const { returnValues } = await this.fetchEvent(
-            'Receive',
-            item.blockNumber
-          );
+        if (item.txreceipt_status == 1) {
+          if (data?.name == 'sentNFT') {
+            const { returnValues } = await this.fetchEvent(
+              'Receive',
+              item.blockNumber
+            );
 
-          newData.address = data.params
-            .find((item) => item.name == '_receiver')
-            .value.toLowerCase();
-          newData.launchpadId = +returnValues.launchIndex;
-          newData.tokenId = +returnValues.nftId;
-          newData.isOwnerCreated = true;
-          newData.refCode = returnValues.refCode;
-          newData.amount = +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = 1;
-          newData.type = 'ido-market';
-          newData.isMarket = false;
+            newData.address = data.params
+              .find((item) => item.name == '_receiver')
+              .value.toLowerCase();
+            newData.launchpadId = +returnValues.launchIndex;
+            newData.tokenId = +returnValues.nftId;
+            newData.isOwnerCreated = true;
+            newData.refCode = returnValues.refCode;
+            newData.amount =
+              +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+            newData.level = 1;
+            newData.type = 'ido-market';
+            newData.isMarket = false;
 
-          arr.push(newData);
-        } else if (data?.name == 'buyNFT') {
-          const { returnValues } = await this.fetchEvent(
-            'Buy',
-            item.blockNumber
-          );
-          newData.address = returnValues.user.toLowerCase();
-          newData.launchpadId = +returnValues.launchIndex;
-          newData.tokenId = +returnValues.nftId;
-          newData.refCode = returnValues.refCode;
-          newData.amount = +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = 1;
-          newData.type = 'ido-market';
-          newData.isOwnerCreated = false;
-          newData.isMarket = false;
+            arr.push(newData);
+          } else if (data?.name == 'buyNFT') {
+            const { returnValues } = await this.fetchEvent(
+              'Buy',
+              item.blockNumber
+            );
+            newData.address = returnValues.user.toLowerCase();
+            newData.launchpadId = +returnValues.launchIndex;
+            newData.tokenId = +returnValues.nftId;
+            newData.refCode = returnValues.refCode;
+            newData.amount =
+              +GET_IDO_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+            newData.level = 1;
+            newData.type = 'ido-market';
+            newData.isOwnerCreated = false;
+            newData.isMarket = false;
 
-          arr.push(newData);
+            arr.push(newData);
+          }
         }
       }
+
+      // const promises = [];
+
+      for (const item of arr) {
+        await this.createTransaction(item);
+      }
+
+      // await Promise.all(promises);
+
+      if (response.data?.result?.length) {
+        await this.configService.update(
+          CONFIG.LAST_IDO_BLOCK,
+          `${response.data?.result[0].blockNumber}`
+        );
+      }
+    } catch (error) {
+      console.log('ido laucnhpad error:', error);
     }
 
-    // const promises = [];
-
-    for (const item of arr) {
-      await this.createTransaction(item);
-    }
-
-    // await Promise.all(promises);
-
-    if (response.data?.result?.length) {
-      await this.configService.update(
-        CONFIG.LAST_IDO_BLOCK,
-        `${response.data?.result[0].blockNumber}`
-      );
-    }
     console.log('\n\n====END THIS ROUND (IDO)===\n\n');
   }
 

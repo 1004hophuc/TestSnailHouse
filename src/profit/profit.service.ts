@@ -4,6 +4,7 @@ import { RewardsService } from 'src/rewards/rewards.service';
 import { TransactionsService } from 'src/transactions/transactions.service';
 import { Repository } from 'typeorm';
 import { Profit, PROFIT_TYPE } from './entities/profit.entity';
+import { CreateProfitDto } from './dto/create-profit.dto';
 import { UserProfitDto } from './dto/user-profit.dto';
 import { toWei } from 'src/utils/web3';
 import { getCurrentTime, profitDao } from 'src/utils';
@@ -21,7 +22,7 @@ export class ProfitService {
     private readonly rewardsService: RewardsService
   ) {}
 
-  @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
+  // @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_NOON)
   async calculateProfit(id: string) {
     try {
       //  Get dex profit
@@ -75,15 +76,17 @@ export class ProfitService {
 
       const dateSendReward = getCurrentTime();
       //  Mapping profit data of current reward.
+      // all DAO profit is 70% of the Reward, except swap
+
       let profitArr = [];
-      userDaoList.forEach((user) => {
+      let newUserList = [];
+
+      for (let i = 0; i < userDaoList.length; i++) {
+        const user = userDaoList[i];
+
         const userDefaultData = {
           user: user.address,
-          dateReward,
-          totalDaoUser,
-          isWithdraw: 0,
-          dateSendReward,
-          daoProfitPercent: DAO_PROFIT_PERCENT, // all DAO profit is 70% of the Reward, except swap
+          daoProfitPercent: DAO_PROFIT_PERCENT,
         };
         const idoProfitData = {
           ...userDefaultData,
@@ -91,7 +94,6 @@ export class ProfitService {
           weiAmountProfit: toWei(idoProfit),
           type: PROFIT_TYPE.IDO,
           dexProfit: idoReward,
-          docUrl: itemReward.reportURL,
         };
         const swapProfitData = {
           ...userDefaultData,
@@ -100,7 +102,6 @@ export class ProfitService {
           type: PROFIT_TYPE.SWAP,
           dexProfit: swapReward,
           daoProfitPercent: SWAP_PROFIT_PERCENT, // swap is 10%
-          docUrl: itemReward.swapURL,
         };
         const marketProfitData = {
           ...userDefaultData,
@@ -108,7 +109,6 @@ export class ProfitService {
           weiAmountProfit: toWei(marketProfit),
           type: PROFIT_TYPE.MARKET,
           dexProfit: marketReward,
-          docUrl: itemReward.marketURL,
         };
 
         const nftLaunchpadProfitData = {
@@ -117,7 +117,6 @@ export class ProfitService {
           weiAmountProfit: toWei(nftLaunchpadProfit),
           type: PROFIT_TYPE.NFTLAUNCHPAD,
           dexProfit: nftLaunchpadReward,
-          docUrl: itemReward.nftLaunchpadURL,
         };
 
         const nftGameProfitData = {
@@ -126,7 +125,6 @@ export class ProfitService {
           weiAmountProfit: toWei(nftGameProfit),
           type: PROFIT_TYPE.NFTGAME,
           dexProfit: nftGameReward,
-          docUrl: itemReward.nftGameURL,
         };
 
         const seedInvestProfitData = {
@@ -135,21 +133,26 @@ export class ProfitService {
           weiAmountProfit: toWei(seedInvestProfit),
           type: PROFIT_TYPE.SEEDINVEST,
           dexProfit: seedInvestReward,
-          docUrl: itemReward.seedInvestURL,
         };
 
-        profitArr = [
-          ...profitArr,
-          idoProfitData,
-          swapProfitData,
-          marketProfitData,
-          nftLaunchpadProfitData,
-          nftGameProfitData,
-          seedInvestProfitData,
-        ];
-      });
+        const existUser = await this.profitRepo.find({ user });
+        if (existUser.length > 0) {
+          newUserList = [
+            ...newUserList,
+            idoProfitData,
+            swapProfitData,
+            marketProfitData,
+            nftLaunchpadProfitData,
+            nftGameProfitData,
+            seedInvestProfitData,
+          ];
+          continue;
+        }
 
-      await this.profitRepo.save(profitArr);
+       
+      }
+
+      await this.profitRepo.save(newUserList);
       itemReward.isSent = true;
       delete itemReward.id;
       this.rewardsService.update(id, itemReward);
@@ -162,6 +165,21 @@ export class ProfitService {
       console.log('error:', error);
       return error;
     }
+  }
+
+  async calculateProfitWithType(user: string, type: PROFIT_TYPE, newData: any) {
+
+    
+    // switch (type) {
+    //   case PROFIT_TYPE.IDO:
+        
+    //     break;
+    
+    //   default:
+    //     break;
+    // }
+
+    // await this.profitRepo.update({ user, type }, newData);
   }
 
   async userProfitHistory(query: UserProfitDto) {

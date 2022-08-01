@@ -217,87 +217,91 @@ export class TransactionsService {
   }
 
   async fetchTrans() {
-    const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
+    try {
+      const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
 
-    const response = await axios.get(process.env.DOMAIN_BSC, {
-      params: {
-        address: process.env.CONTRACT_LAUNCHPAD,
-        apikey: process.env.BSC_API_KEY,
-        action: 'txlist',
-        module: 'account',
-        sort: 'desc',
-        startblock: +lastBlock?.value,
-        // endblock: +lastBlock + 9999,
-      },
-    });
+      const response = await axios.get(process.env.DOMAIN_BSC, {
+        params: {
+          address: process.env.CONTRACT_LAUNCHPAD,
+          apikey: process.env.BSC_API_KEY,
+          action: 'txlist',
+          module: 'account',
+          sort: 'desc',
+          startblock: +lastBlock?.value,
+          // endblock: +lastBlock + 9999,
+        },
+      });
 
-    abiDecoder.addABI(LaunchPadABI);
+      abiDecoder.addABI(LaunchPadABI);
 
-    const arr = [];
+      const arr = [];
 
-    for (const item of response.data?.result) {
-      const data = abiDecoder.decodeMethod(item.input);
+      for (const item of response.data?.result) {
+        const data = abiDecoder.decodeMethod(item.input);
 
-      const newData: any = {
-        block: item.blockNumber,
-        txHash: item.hash,
-        timestamp: +item.timeStamp * 1000,
-        from: item.from.toLowerCase(),
-      };
+        const newData: any = {
+          block: item.blockNumber,
+          txHash: item.hash,
+          timestamp: +item.timeStamp * 1000,
+          from: item.from.toLowerCase(),
+        };
 
-      if (item.txreceipt_status == 1) {
-        if (data?.name == 'sentNFT') {
-          const { returnValues } = await this.fetchEvent(
-            'Receive',
-            item.blockNumber
-          );
+        if (item.txreceipt_status == 1) {
+          if (data?.name == 'sentNFT') {
+            const { returnValues } = await this.fetchEvent(
+              'Receive',
+              item.blockNumber
+            );
 
-          newData.address = data.params
-            .find((item) => item.name == '_receiver')
-            .value.toLowerCase();
-          newData.launchpadId = +returnValues.launchIndex;
-          newData.tokenId = +returnValues.nftId;
-          newData.isOwnerCreated = true;
-          newData.refCode = returnValues.refCode;
-          newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = +returnValues.launchIndex + 1;
-          newData.type = 'market';
-          newData.isMarket = true;
+            newData.address = data.params
+              .find((item) => item.name == '_receiver')
+              .value.toLowerCase();
+            newData.launchpadId = +returnValues.launchIndex;
+            newData.tokenId = +returnValues.nftId;
+            newData.isOwnerCreated = true;
+            newData.refCode = returnValues.refCode;
+            newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+            newData.level = +returnValues.launchIndex + 1;
+            newData.type = 'market';
+            newData.isMarket = true;
 
-          arr.push(newData);
-        } else if (data?.name == 'buyNFT') {
-          const { returnValues } = await this.fetchEvent(
-            'Buy',
-            item.blockNumber
-          );
-          newData.address = returnValues.user.toLowerCase();
-          newData.launchpadId = +returnValues.launchIndex;
-          newData.tokenId = +returnValues.nftId;
-          newData.refCode = returnValues.refCode;
-          newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-          newData.level = +returnValues.launchIndex + 1;
-          newData.type = 'market';
-          newData.isOwnerCreated = false;
-          newData.isMarket = true;
+            arr.push(newData);
+          } else if (data?.name == 'buyNFT') {
+            const { returnValues } = await this.fetchEvent(
+              'Buy',
+              item.blockNumber
+            );
+            newData.address = returnValues.user.toLowerCase();
+            newData.launchpadId = +returnValues.launchIndex;
+            newData.tokenId = +returnValues.nftId;
+            newData.refCode = returnValues.refCode;
+            newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+            newData.level = +returnValues.launchIndex + 1;
+            newData.type = 'market';
+            newData.isOwnerCreated = false;
+            newData.isMarket = true;
 
-          arr.push(newData);
+            arr.push(newData);
+          }
         }
       }
-    }
 
-    // const promises = [];
+      // const promises = [];
 
-    for (const item of arr) {
-      await this.createTransaction(item);
-    }
+      for (const item of arr) {
+        await this.createTransaction(item);
+      }
 
-    // await Promise.all(promises);
+      // await Promise.all(promises);
 
-    if (response.data?.result?.length) {
-      await this.configService.update(
-        CONFIG.LAST_BLOCK,
-        `${response.data?.result[0].blockNumber}`
-      );
+      if (response.data?.result?.length) {
+        await this.configService.update(
+          CONFIG.LAST_BLOCK,
+          `${response.data?.result[0].blockNumber}`
+        );
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 

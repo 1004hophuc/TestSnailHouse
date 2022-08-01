@@ -13,16 +13,16 @@ export class RewardsService {
 
   public async create(createRewardDto: CreateRewardDto): Promise<any> {
     try {
-      const existReward = await this.rewardRepo.findOne({
-        dateReward: createRewardDto.dateReward,
-      });
+      // const existReward = await this.rewardRepo.findOne({
+      //   dateReward: createRewardDto.dateReward,
+      // });
 
-      if (existReward) {
-        return {
-          statusCode: 409,
-          message: 'Item is already exist!',
-        };
-      }
+      // if (existReward) {
+      //   return {
+      //     statusCode: 409,
+      //     message: 'Item is already exist!',
+      //   };
+      // }
       const item = this.rewardRepo.create(createRewardDto);
       item.isSent = false;
       const reward = await this.rewardRepo.save(item);
@@ -92,9 +92,9 @@ export class RewardsService {
     }
   }
 
-  async remove(timestamp: number) {
+  async remove(id: string) {
     try {
-      await this.rewardRepo.delete({ dateReward: timestamp });
+      await this.rewardRepo.delete(id);
       return {
         message: 'Delete item successfully!',
       };
