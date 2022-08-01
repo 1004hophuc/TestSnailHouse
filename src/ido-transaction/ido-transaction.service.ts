@@ -234,8 +234,8 @@ export class IDOTransactionsService {
     } catch (e) {}
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
-  // @Timeout(1000)
+  // @Cron(CronExpression.EVERY_30_SECONDS)
+  @Timeout(1000)
   async fetchTrans() {
     console.log(
       `\n\n====START THIS ROUND (IDO) at ${getTime(new Date())}===\n\n`
@@ -244,8 +244,10 @@ export class IDOTransactionsService {
     try {
       const lastIdoBlock = await this.configService.findOne(
         CONFIG.LAST_IDO_BLOCK
-      );
-
+        );
+        
+        console.log('lastIdoBlock:', lastIdoBlock)
+      console.log('process.env.DOMAIN_BSC:', process.env.DOMAIN_BSC)
       const response = await axios.get(process.env.DOMAIN_BSC, {
         params: {
           address: process.env.CONTRACT_IDO_LAUNCHPAD,
@@ -253,11 +255,25 @@ export class IDOTransactionsService {
           action: 'txlist',
           module: 'account',
           sort: 'desc',
-          startblock: +lastIdoBlock?.value,
+          startblock: 0,
           // endblock: +lastBlock + 9999,
         },
       });
-      console.log('response:', response.data?.result?.length);
+
+      console.log('params', {
+        address: process.env.CONTRACT_IDO_LAUNCHPAD,
+        apikey: process.env.BSC_API_KEY,
+        action: 'txlist',
+        module: 'account',
+        sort: 'desc',
+        startblock: +lastIdoBlock?.value,
+        // endblock: +lastBlock + 9999,
+      });
+
+      // console.log('response:', response.data);
+      // console.log('response:', response.data?.result);
+      console.log('response:', response.data?.result[0]);
+
       abiDecoder.addABI(IDOLaunchPadABI);
 
       const arr = [];
