@@ -244,10 +244,8 @@ export class IDOTransactionsService {
     try {
       const lastIdoBlock = await this.configService.findOne(
         CONFIG.LAST_IDO_BLOCK
-        );
-        
-        console.log('lastIdoBlock:', lastIdoBlock)
-      console.log('process.env.DOMAIN_BSC:', process.env.DOMAIN_BSC)
+      );
+
       const response = await axios.get(process.env.DOMAIN_BSC, {
         params: {
           address: process.env.CONTRACT_IDO_LAUNCHPAD,
@@ -256,23 +254,13 @@ export class IDOTransactionsService {
           module: 'account',
           sort: 'desc',
           startblock: 0,
-          // endblock: +lastBlock + 9999,
+          endblock: +200000000,
         },
       });
 
-      console.log('params', {
-        address: process.env.CONTRACT_IDO_LAUNCHPAD,
-        apikey: process.env.BSC_API_KEY,
-        action: 'txlist',
-        module: 'account',
-        sort: 'desc',
-        startblock: +lastIdoBlock?.value,
-        // endblock: +lastBlock + 9999,
-      });
-
-      // console.log('response:', response.data);
-      // console.log('response:', response.data?.result);
-      console.log('response:', response.data?.result[0]);
+      console.log(response.data.result.length)
+      console.log(response.data.result[0])
+      console.log(response.data.result[response.data.result- +1])
 
       abiDecoder.addABI(IDOLaunchPadABI);
 
