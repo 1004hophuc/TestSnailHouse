@@ -15,4 +15,12 @@ export class ProfitSentService {
     const saveProfit = await this.profitSentRepo.save(profitSentItem);
     return saveProfit;
   }
+
+  async findLastRewards() {
+    const [lastRecord] = await this.profitSentRepo.find({
+      order: { dateSendReward: 'DESC' },
+    });
+
+    return lastRecord;
+  }
 }

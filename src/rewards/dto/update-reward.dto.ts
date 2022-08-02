@@ -20,11 +20,6 @@ export class UpdateRewardDto extends PartialType(CreateRewardDto) {
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
-  swapReward: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
   marketReward: number;
 
   @IsNotEmpty()
@@ -41,39 +36,4 @@ export class UpdateRewardDto extends PartialType(CreateRewardDto) {
   @IsNumber()
   @Min(0)
   seedInvestReward: number;
-
-  @IsNotEmpty()
-  @IsPositive()
-  @Max(getCurrentTime())
-  dateReward: number;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  idoURL: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  swapURL: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  marketURL: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  nftLaunchpadURL: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  seedInvestURL: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  nftGameURL: string;
 }

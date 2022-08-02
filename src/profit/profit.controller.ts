@@ -42,11 +42,7 @@ export class ProfitController {
     @Query('type') type: PROFIT_TYPE
   ) {
     const lowercaseAddress = user.toLowerCase();
-    // if (dateReward)
-    //   return this.profitService.userProfitHistory({
-    //     user: lowercaseAddress,
-    //     type,
-    //   });
+
     return this.profitService.userProfitHistory({
       user: lowercaseAddress,
       type,

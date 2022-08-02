@@ -32,5 +32,4 @@ export class Profit extends AbstractEntity {
 
   @Column()
   daoProfitPercent: number;
-
 }

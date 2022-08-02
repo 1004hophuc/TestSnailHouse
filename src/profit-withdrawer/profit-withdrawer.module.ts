@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProfitWithdrawerService } from './profit-withdrawer.service';
 import { ProfitWithdrawerController } from './profit-withdrawer.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,7 +9,7 @@ import { TransactionsModule } from 'src/transactions/transactions.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProfitWithdrawer]),
-    ProfitModule,
+    forwardRef(() => ProfitModule),
     TransactionsModule,
   ],
   controllers: [ProfitWithdrawerController],

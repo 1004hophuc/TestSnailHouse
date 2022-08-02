@@ -20,12 +20,14 @@ import { Repository } from 'typeorm';
 import BigNumber from 'bignumber.js';
 import { Console } from 'console';
 import { getMonthTimeRange } from 'src/utils/helper';
+import { ProfitService } from 'src/profit/profit.service';
 
 @Injectable()
 export class DaoElementTransactionService {
   constructor(
     @InjectRepository(DaoElementTransaction)
-    private daoElementTransactionReposity: Repository<DaoElementTransaction>
+    private daoElementTransactionReposity: Repository<DaoElementTransaction>,
+    private readonly profitService: ProfitService
   ) {}
 
   create(createDaoElementTransactionDto: CreateDaoElementTransactionDto) {
@@ -38,12 +40,27 @@ export class DaoElementTransactionService {
       console.log('Start DAO element transaction job ');
       await this.getLaunchpadTransaction();
       await this.getMarketTransaction();
-      await this.getRouterTransaction();
       console.log('End DAO element transaction job ');
     } catch (error) {
       console.log(error?.response?.error);
       throw error;
     }
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async fetchRouter() {
+    try {
+      await this.getRouterTransaction();
+    } catch (error) {
+      console.log(error?.response?.error);
+      throw error;
+    }
+  }
+
+  async deleteRouterTransaction() {
+    await this.daoElementTransactionReposity.delete({
+      type: ElementType.ROUTER,
+    });
   }
 
   async getLaunchpadTransaction() {
@@ -228,46 +245,50 @@ export class DaoElementTransactionService {
 
       latestRouterTransaction.length && transactions.pop();
 
-      const result = await Promise.map(
-        transactions,
-        async (transaction, index) => {
-          const txReceipt = await web3.eth.getTransactionReceipt(
-            transaction.hash
+      for (let i = 0; i < transactions.length; i++) {
+        const transaction = transactions[i];
+        const txReceipt = await web3.eth.getTransactionReceipt(
+          transaction.hash
+        );
+
+        if (!txReceipt) continue;
+        const values = await this.getValueFromRouterTxReceipt(txReceipt);
+        const insertData = {
+          txhash: transaction.hash,
+          type: ElementType.ROUTER,
+          block_number: transaction.blockNumber,
+          timestamp: +transaction.timeStamp,
+          from_address: transaction.from,
+          to_address: transaction.to,
+        };
+
+        for (let j = 0; j < values.length; j++) {
+          const value = values[j];
+          let corkValue = 0;
+
+          if (value.unit_token_address.toLowerCase() === adoBnb)
+            corkValue = await this.getLpPriceInCork(adoBnb);
+
+          if (value.unit_token_address.toLowerCase() === bnbBusd)
+            corkValue = await this.getLpPriceInCork(bnbBusd);
+
+          if (value.unit_token_address.toLowerCase() === adoBusd)
+            corkValue = await this.getLpPriceInCork(adoBusd);
+
+          await this.profitService.calculateSwapProfit(
+            +corkValue,
+            insertData.timestamp
           );
 
-          if (!txReceipt) return;
-          const values = await this.getValueFromRouterTxReceipt(txReceipt);
-          const insertData = {
-            txhash: transaction.hash,
-            type: ElementType.ROUTER,
-            block_number: transaction.blockNumber,
-            timestamp: +transaction.timeStamp,
-            from_address: transaction.from,
-            to_address: transaction.to,
-          };
-
-          await Promise.map(values, async (value) => {
-            let corkValue = 0;
-
-            if (value.unit_token_address.toLowerCase() === adoBnb)
-              corkValue = await this.getLpPriceInCork(adoBnb);
-
-            if (value.unit_token_address.toLowerCase() === bnbBusd)
-              corkValue = await this.getLpPriceInCork(bnbBusd);
-
-            if (value.unit_token_address.toLowerCase() === adoBusd)
-              corkValue = await this.getLpPriceInCork(adoBusd);
-
-            await this.daoElementTransactionReposity.insert({
-              ...insertData,
-              value: value.total,
-              unit_token_address: value.unit_token_address,
-              unit_token_name: value.unit_token_name,
-              corkValue: +corkValue,
-            });
+          await this.daoElementTransactionReposity.insert({
+            ...insertData,
+            value: value.total,
+            unit_token_address: value.unit_token_address,
+            unit_token_name: value.unit_token_name,
+            corkValue: +corkValue,
           });
         }
-      );
+      }
 
       console.log('DONE ROUTER JOB !');
     } catch (error) {

@@ -15,15 +15,10 @@ export class CreateRewardDto {
   @Min(0)
   idoReward: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  swapReward: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  marketReward: number;
+  // @IsNotEmpty()
+  // @IsNumber()
+  // @Min(0)
+  // swapReward: number;
 
   @IsNotEmpty()
   @IsNumber()

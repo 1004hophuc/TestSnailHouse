@@ -10,9 +10,6 @@ export class Reward extends AbstractEntity {
   idoReward: number;
 
   @Column()
-  swapReward: number;
-
-  @Column()
   marketReward: number;
 
   @Column()

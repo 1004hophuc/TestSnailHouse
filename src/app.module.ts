@@ -24,6 +24,7 @@ import { StatisticModule } from './statistic/statistic.module';
 import { IdoNftModule } from './ido-nft/ido-nft.module';
 import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
 import { ProfitSentModule } from './profit-sent/profit-sent.module';
+import { ProfitSwapSentModule } from './profit-swap-sent/profit-swap-sent.module';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { ProfitSentModule } from './profit-sent/profit-sent.module';
       logging: true,
     }),
 
-    // ScheduleModule.forRoot(),
+    ScheduleModule.forRoot(),
 
     UsersModule,
     TransactionsModule,
@@ -66,6 +67,7 @@ import { ProfitSentModule } from './profit-sent/profit-sent.module';
     IdoNftModule,
     IdoTransactionModule,
     ProfitSentModule,
+    ProfitSwapSentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

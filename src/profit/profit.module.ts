@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ProfitService } from './profit.service';
 import { ProfitController } from './profit.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -6,12 +6,16 @@ import { Profit } from './entities/profit.entity';
 import { TransactionsModule } from 'src/transactions/transactions.module';
 import { RewardsModule } from 'src/rewards/rewards.module';
 import { ProfitSentModule } from 'src/profit-sent/profit-sent.module';
+import { ProfitWithdrawerModule } from 'src/profit-withdrawer/profit-withdrawer.module';
+import { ProfitSwapSentModule } from 'src/profit-swap-sent/profit-swap-sent.module';
 
 @Module({
   imports: [
     RewardsModule,
     TransactionsModule,
     ProfitSentModule,
+    forwardRef(() => ProfitWithdrawerModule),
+    ProfitSwapSentModule,
     TypeOrmModule.forFeature([Profit]),
   ],
   controllers: [ProfitController],

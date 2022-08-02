@@ -242,7 +242,7 @@ export function getThisWeekInterval(): { start: number; end: number } {
 }
 
 export function getDateInterval(date: any): { start: number; end: number } {
-  const start = moment(date).startOf('day');
+  const start = moment.utc(date).startOf('day');
   const end = start.clone().add(1, 'days');
   return {
     start: start.valueOf() / 1000,

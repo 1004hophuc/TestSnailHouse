@@ -23,7 +23,4 @@ export class ProfitSent extends AbstractEntity {
 
   @Column()
   nftGameProfit: number;
-
-  @Column()
-  swapProfit: number;
 }

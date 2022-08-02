@@ -234,8 +234,7 @@ export class IDOTransactionsService {
     } catch (e) {}
   }
 
-  // @Cron(CronExpression.EVERY_30_SECONDS)
-  @Timeout(1000)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async fetchTrans() {
     console.log(
       `\n\n====START THIS ROUND (IDO) at ${getTime(new Date())}===\n\n`

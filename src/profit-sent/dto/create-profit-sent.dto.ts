@@ -7,21 +7,23 @@ export class CreateProfitSentDto {
   @IsNumber()
   dateSendReward: number;
 
+  // per user
   @IsNumber()
   idoProfit: number;
 
+  // per user
   @IsNumber()
   seedInvestProfit: number;
 
+  // per user
   @IsNumber()
   marketProfit: number;
 
+  // per user
   @IsNumber()
   nftLaunchpadProfit: number;
 
+  // per user
   @IsNumber()
   nftGameProfit: number;
-
-  @IsNumber()
-  swapProfit: number;
 }

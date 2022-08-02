@@ -197,7 +197,8 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  //EVERY 20 SEC
+  @Cron('*/20 * * * * *')
   async handleCron() {
     if (this?.['IS_IN_CRONJOB']) {
       console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
@@ -232,7 +233,7 @@ export class TransactionsService {
           // endblock: +lastBlock + 9999,
         },
       });
-     
+
       abiDecoder.addABI(LaunchPadABI);
 
       const arr = [];

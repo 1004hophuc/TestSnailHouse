@@ -62,8 +62,8 @@ export class VotingService {
     const vote = await this.votingRepo.findOne(id);
     return vote;
   }
-
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  // EVERY 40 SEC
+  @Cron('*/40 * * * * *')
   async getVotingTransactionJob() {
     try {
       console.log('Start Voting transaction job ');

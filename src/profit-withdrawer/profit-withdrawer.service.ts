@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfitWithdrawer } from './entities/profit-withdrawer.entity';
 import {
@@ -8,7 +8,7 @@ import {
 import { UpdateProfitWithdrawerDto } from './dto/update-profit-withdrawer.dto';
 import { Repository } from 'typeorm';
 import { ProfitService } from 'src/profit/profit.service';
-import { getWeb3 } from 'src/utils/web3';
+import { getWeb3, toWei } from 'src/utils/web3';
 import { TransactionsService } from 'src/transactions/transactions.service';
 import { Abi as RewardsABI } from 'src/contract/Rewards';
 import Web3 from 'web3';
@@ -20,6 +20,7 @@ export class ProfitWithdrawerService {
   constructor(
     @InjectRepository(ProfitWithdrawer)
     private profitWithdrawerRepo: Repository<ProfitWithdrawer>,
+    @Inject(forwardRef(() => ProfitService))
     private readonly profitService: ProfitService,
     private readonly transactionService: TransactionsService
   ) {}
@@ -113,7 +114,7 @@ export class ProfitWithdrawerService {
         await this.profitService.getTotalWithdrawAvailable(user, type);
 
       const nonce = await contract.methods.nonce().call();
-      const amountInWei = web3.utils.toWei(totalAvailableWithdraw + '');
+      const amountInWei = toWei(totalAvailableWithdraw);
 
       const hash = web3.utils.keccak256(
         web3.eth.abi.encodeParameters(
