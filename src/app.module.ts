@@ -23,7 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { StatisticModule } from './statistic/statistic.module';
 import { IdoNftModule } from './ido-nft/ido-nft.module';
 import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
-import { ProfitPerMonthModule } from './profit-per-month/profit-per-month.module';
+import { ProfitSentModule } from './profit-sent/profit-sent.module';
 
 @Module({
   imports: [
@@ -49,7 +49,7 @@ import { ProfitPerMonthModule } from './profit-per-month/profit-per-month.module
       logging: true,
     }),
 
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
 
     UsersModule,
     TransactionsModule,
@@ -65,7 +65,7 @@ import { ProfitPerMonthModule } from './profit-per-month/profit-per-month.module
     DaoElementTransactionModule,
     IdoNftModule,
     IdoTransactionModule,
-    ProfitPerMonthModule,
+    ProfitSentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

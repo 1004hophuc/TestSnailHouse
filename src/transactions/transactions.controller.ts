@@ -14,6 +14,10 @@ export class TransactionsController {
     return this.transactionsService.getUserStaked(address.toLowerCase());
   }
 
+  @Get('dao-users')
+  getByStaked() {
+    return this.transactionsService.getByStaked(true);
+  }
   @Get()
   async get(@Query() query: QueryTransactionDto) {
     try {

@@ -42,7 +42,7 @@ export class ProfitWithdrawerService {
     );
 
     //update profit User Withdraw status
-    this.profitService.updateUserWithdraw(account, type);
+    // this.profitService.updateUserWithdraw(account, type);
     return profitWithdrawSave;
   }
 

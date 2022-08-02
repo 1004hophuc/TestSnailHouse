@@ -39,16 +39,14 @@ export class ProfitController {
   @Get('userProfitHistory')
   userProfitHistory(
     @Query('account') user: string,
-    @Query('dateReward') dateReward: number,
     @Query('type') type: PROFIT_TYPE
   ) {
     const lowercaseAddress = user.toLowerCase();
-    if (dateReward)
-      return this.profitService.userProfitHistory({
-        user: lowercaseAddress,
-        dateReward,
-        type,
-      });
+    // if (dateReward)
+    //   return this.profitService.userProfitHistory({
+    //     user: lowercaseAddress,
+    //     type,
+    //   });
     return this.profitService.userProfitHistory({
       user: lowercaseAddress,
       type,

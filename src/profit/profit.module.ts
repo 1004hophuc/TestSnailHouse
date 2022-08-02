@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profit } from './entities/profit.entity';
 import { TransactionsModule } from 'src/transactions/transactions.module';
 import { RewardsModule } from 'src/rewards/rewards.module';
+import { ProfitSentModule } from 'src/profit-sent/profit-sent.module';
 
 @Module({
   imports: [
     RewardsModule,
     TransactionsModule,
+    ProfitSentModule,
     TypeOrmModule.forFeature([Profit]),
   ],
   controllers: [ProfitController],

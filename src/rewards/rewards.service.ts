@@ -11,18 +11,8 @@ export class RewardsService {
     @InjectRepository(Reward) private rewardRepo: Repository<Reward>
   ) {}
 
-  public async create(createRewardDto: CreateRewardDto): Promise<any> {
+  public async create(createRewardDto: CreateRewardDto): Promise<Reward> {
     try {
-      // const existReward = await this.rewardRepo.findOne({
-      //   dateReward: createRewardDto.dateReward,
-      // });
-
-      // if (existReward) {
-      //   return {
-      //     statusCode: 409,
-      //     message: 'Item is already exist!',
-      //   };
-      // }
       const item = this.rewardRepo.create(createRewardDto);
       item.isSent = false;
       const reward = await this.rewardRepo.save(item);

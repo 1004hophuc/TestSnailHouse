@@ -16,12 +16,6 @@ export class Profit extends AbstractEntity {
   id: ObjectID;
 
   @Column()
-  dateSendReward: number;
-
-  @Column()
-  docUrl: string;
-
-  @Column()
   user: string;
 
   @Column()
@@ -39,12 +33,4 @@ export class Profit extends AbstractEntity {
   @Column()
   daoProfitPercent: number;
 
-  @Column()
-  dateReward: number;
-
-  @Column()
-  totalDaoUser: number;
-
-  @Column()
-  isWithdraw: number; // 0:false, 1:true
 }

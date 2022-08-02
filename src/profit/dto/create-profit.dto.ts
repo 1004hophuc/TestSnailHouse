@@ -2,10 +2,6 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateProfitDto {
   @IsNotEmpty()
-  @IsNumber()
-  dateSendReward: number;
-
-  @IsNotEmpty()
   @IsString()
   user: string;
 
@@ -28,16 +24,4 @@ export class CreateProfitDto {
   @IsNotEmpty()
   @IsNumber()
   daoProfitPercent: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  dateReward: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  totalDaoUser: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  isWithdraw: number; // 0:false, 1:true
 }

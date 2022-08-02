@@ -1,16 +1,19 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { PROFIT_TYPE } from '../entities/profit.entity';
 
 export class UserProfitDto {
-  @IsNotEmpty()
-  @IsNumber()
-  @IsOptional()
-  dateReward?: number;
-
   @IsNotEmpty()
   @IsString()
   user: string;
 
   @IsNotEmpty()
   @IsString()
-  type: string;
+  @IsEnum(PROFIT_TYPE)
+  type: PROFIT_TYPE;
 }

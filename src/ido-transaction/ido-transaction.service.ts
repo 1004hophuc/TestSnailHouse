@@ -253,14 +253,9 @@ export class IDOTransactionsService {
           action: 'txlist',
           module: 'account',
           sort: 'desc',
-          startblock: 0,
-          endblock: +200000000,
+          startblock: +lastIdoBlock.value,
         },
       });
-
-      console.log(response.data.result.length)
-      console.log(response.data.result[0])
-      console.log(response.data.result[response.data.result- +1])
 
       abiDecoder.addABI(IDOLaunchPadABI);
 
