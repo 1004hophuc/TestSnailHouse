@@ -252,7 +252,7 @@ export class TransactionsService {
       from: '0x1b6DdDC77bde1B2D948dC23CF8a8fa9ad0Cd9f32',
       txHash: item.transactionHash.toLowerCase(),
       level: +item.returnValues.launchIndex + 1,
-      launchId: +item.returnValues.launchIndex,
+      launchpadId: +item.returnValues.launchIndex,
       isOwnerCreated: name != 'Buy',
     }));
 

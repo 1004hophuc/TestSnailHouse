@@ -68,12 +68,43 @@ export class NftService {
     private readonly nftImageService: NftImageService
   ) {}
 
+  formatString(index) {
+    const str = index.toString();
+    if (str.length == 1) {
+      return `000${str}`;
+    }
+    if (str.length == 2) {
+      return `00${str}`;
+    }
+    if (str.length == 3) {
+      return `0${str}`;
+    }
+    if (str.length == 4) {
+      return `${str}`;
+    }
+  }
+
   async getMetadata(id: string): Promise<any> {
     try {
       const data = await this.nftRepository.findOne({ tokenId: +id });
+
+      const token = await this.nftRepository.find({
+        where: { level: data.level },
+        order: {
+          tokenId: 'ASC',
+        },
+      });
+
+      const findIndex = token.findIndex(
+        (item) => item?.tokenId.toString() == id
+      );
+
       if (data) {
         data.name = levelNameMapping(data.level);
         data.description = levelDescriptionMapping(data.level);
+        data.image = `https://nftmarket.winerydao.day/upload/tier${
+          data.level
+        }/${this.formatString(findIndex + 1)}.png`;
 
         delete data.id;
         return data;
