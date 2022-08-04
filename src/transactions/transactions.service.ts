@@ -231,11 +231,6 @@ export class TransactionsService {
       process.env.CONTRACT_NFT
     );
 
-    const multisendContract = new web3.eth.Contract(
-      MultiSendAbi as any,
-      ' 0x0a32fB584374D4c135Ca6cF0f2c67811690683e9'
-    );
-
     const data = await contract.getPastEvents(name || 'Receive', {
       fromBlock: startBlock,
       toBlock: endBlock,
