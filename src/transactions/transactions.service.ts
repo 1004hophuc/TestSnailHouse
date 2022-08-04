@@ -17,6 +17,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { getTime, CONFIG, GET_AMOUNT_LAUNCHPAD } from '../config';
 
 import { Abi as LaunchPadABI } from '../contract/LaunchPad';
+import { MultiSendAbi } from '../contract/MultiSend';
 import axios from 'axios';
 import { Abi as NFTAbi } from '../contract/NFT';
 import { getMonthTimeRange } from '../utils/helper';
@@ -145,26 +146,26 @@ export class TransactionsService {
       this['IS_IN_JOB_CREATE_PATIENT'] = true;
       const web3 = getWeb3();
 
-      const [transactionVerified, transactionReceipt] = await Promise.all([
-        web3.eth.getTransaction(createTransactionDto.txHash),
-        web3.eth.getTransactionReceipt(createTransactionDto.txHash),
-      ]);
+      // const [transactionVerified, transactionReceipt] = await Promise.all([
+      //   web3.eth.getTransaction(createTransactionDto.txHash),
+      //   web3.eth.getTransactionReceipt(createTransactionDto.txHash),
+      // ]);
 
-      if (
-        transactionVerified.to.toLowerCase() !=
-          process.env.CONTRACT_LAUNCHPAD.toLowerCase() ||
-        !transactionReceipt.status
-      ) {
-        return false;
-      }
+      // if (
+      //   transactionVerified.to.toLowerCase() !=
+      //     process.env.CONTRACT_LAUNCHPAD.toLowerCase() ||
+      //   !transactionReceipt.status
+      // ) {
+      //   return false;
+      // }
 
-      const itemExisted = await this.transactionsRepository.findOne({
-        txHash: createTransactionDto.txHash.toLowerCase(),
-      });
+      // const itemExisted = await this.transactionsRepository.findOne({
+      //   txHash: createTransactionDto.txHash.toLowerCase(),
+      // });
 
-      if (itemExisted) {
-        return false;
-      }
+      // if (itemExisted) {
+      //   return false;
+      // }
 
       const item = await this.transactionsRepository.create(
         createTransactionDto
@@ -197,8 +198,7 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  //EVERY 20 SEC
-  @Cron('*/20 * * * * *')
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     if (this?.['IS_IN_CRONJOB']) {
       console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
@@ -217,94 +217,177 @@ export class TransactionsService {
     }
   }
 
+  async testCronjobA(startBlock, endBlock, name = 'Buy') {
+    const web3 = getWeb3();
+    abiDecoder.addABI(MultiSendAbi);
+
+    const contract = new web3.eth.Contract(
+      LaunchPadABI as any,
+      process.env.CONTRACT_LAUNCHPAD
+    );
+
+    const nftContract = new web3.eth.Contract(
+      NFTAbi as any,
+      process.env.CONTRACT_NFT
+    );
+
+    const multisendContract = new web3.eth.Contract(
+      MultiSendAbi as any,
+      ' 0x0a32fB584374D4c135Ca6cF0f2c67811690683e9'
+    );
+
+    const data = await contract.getPastEvents(name || 'Receive', {
+      fromBlock: startBlock,
+      toBlock: endBlock,
+    });
+
+    const newData = [];
+
+    for (const item of data) {
+      const token = await nftContract.methods
+        .getToken(item.returnValues.nftId)
+        .call();
+
+      newData.push({ ...item, address: token.tokenOwner });
+    }
+
+    const fixData = newData.map((item) => ({
+      address: item.address.toLowerCase(),
+      tokenId: +item.returnValues.nftId,
+      from: '0x1b6DdDC77bde1B2D948dC23CF8a8fa9ad0Cd9f32',
+      txHash: item.transactionHash.toLowerCase(),
+      level: +item.returnValues.launchIndex + 1,
+      launchId: +item.returnValues.launchIndex,
+      isOwnerCreated: name != 'Buy',
+    }));
+
+    return fixData;
+  }
+
   async fetchTrans() {
+    const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
+    const web3 = getWeb3();
+
+    let finalData = [];
+
+    const newBlock = await web3.eth.getBlockNumber();
+    const startBlock = +lastBlock?.value || 17649507; //lastBlock;
+
+    const round = Math.ceil((newBlock - startBlock) / 5000);
+
     try {
-      const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
+      for (let i = 0; i < round; i++) {
+        const start = startBlock + 5000 * i;
+        const end = i == round - 1 ? newBlock : startBlock + 5000 * (i + 1);
 
-      const response = await axios.get(process.env.DOMAIN_BSC, {
-        params: {
-          address: process.env.CONTRACT_LAUNCHPAD,
+        const dataReceive = await this.testCronjobA(start, end, 'Receive');
+        console.log('dataReceive:', dataReceive.length);
+        const dataBuy = await this.testCronjobA(start, end);
+        console.log('\n\n\n\nThe fak: ', i);
+        console.log(start, end);
 
-          apikey: process.env.BSC_API_KEY,
-          action: 'txlist',
-          module: 'account',
-          sort: 'desc',
-          startblock: +lastBlock?.value,
-          // endblock: +lastBlock + 9999,
-        },
-      });
-
-      abiDecoder.addABI(LaunchPadABI);
-
-      const arr = [];
-
-      for (const item of response.data?.result) {
-        const data = abiDecoder.decodeMethod(item.input);
-
-        const newData: any = {
-          block: item.blockNumber,
-          txHash: item.hash,
-          timestamp: +item.timeStamp * 1000,
-          from: item.from.toLowerCase(),
-        };
-
-        if (item.txreceipt_status == 1) {
-          if (data?.name == 'sentNFT') {
-            const { returnValues } = await this.fetchEvent(
-              'Receive',
-              item.blockNumber
-            );
-
-            newData.address = data.params
-              .find((item) => item.name == '_receiver')
-              .value.toLowerCase();
-            newData.launchpadId = +returnValues.launchIndex;
-            newData.tokenId = +returnValues.nftId;
-            newData.isOwnerCreated = true;
-            newData.refCode = returnValues.refCode;
-            newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-            newData.level = +returnValues.launchIndex + 1;
-            newData.type = 'market';
-            newData.isMarket = true;
-
-            arr.push(newData);
-          } else if (data?.name == 'buyNFT') {
-            const { returnValues } = await this.fetchEvent(
-              'Buy',
-              item.blockNumber
-            );
-            newData.address = returnValues.user.toLowerCase();
-            newData.launchpadId = +returnValues.launchIndex;
-            newData.tokenId = +returnValues.nftId;
-            newData.refCode = returnValues.refCode;
-            newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
-            newData.level = +returnValues.launchIndex + 1;
-            newData.type = 'market';
-            newData.isOwnerCreated = false;
-            newData.isMarket = true;
-
-            arr.push(newData);
-          }
-        }
+        finalData = [...finalData, ...dataReceive, ...dataBuy];
+        console.log('length: ', finalData.length);
       }
 
-      // const promises = [];
+      console.log('sososososos');
 
-      for (const item of arr) {
+      for (const item of finalData) {
         await this.createTransaction(item);
       }
 
-      // await Promise.all(promises);
-
-      if (response.data?.result?.length) {
-        await this.configService.update(
-          CONFIG.LAST_BLOCK,
-          `${response.data?.result[0].blockNumber}`
-        );
+      if (finalData?.length) {
+        await this.configService.update(CONFIG.LAST_BLOCK, `${newBlock + 1}`);
       }
-    } catch (error) {
-      console.log(error);
+
+      return { length: finalData.length, finalData };
+    } catch (e) {
+      console.log(e);
+      return e;
     }
+
+    // const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
+
+    // const response = await axios.get(process.env.DOMAIN_BSC, {
+    //   params: {
+    //     address: process.env.CONTRACT_LAUNCHPAD,
+    //     apikey: process.env.BSC_API_KEY,
+    //     action: 'txlist',
+    //     module: 'account',
+    //     sort: 'desc',
+    //     startblock: +lastBlock?.value,
+    //     // endblock: +lastBlock + 9999,
+    //   },
+    // });
+
+    // abiDecoder.addABI(LaunchPadABI);
+
+    // const arr = [];
+
+    // for (const item of response.data?.result) {
+    //   const data = abiDecoder.decodeMethod(item.input);
+
+    //   const newData: any = {
+    //     block: item.blockNumber,
+    //     txHash: item.hash,
+    //     timestamp: +item.timeStamp * 1000,
+    //     from: item.from.toLowerCase(),
+    //   };
+
+    //   // if (item.txreceipt_status == 1) {
+    //   //   if (data?.name == 'sentNFT') {
+    //   //     const { returnValues } = await this.fetchEvent(
+    //   //       'Receive',
+    //   //       item.blockNumber
+    //   //     );
+
+    //   //     newData.address = data.params
+    //   //       .find((item) => item.name == '_receiver')
+    //   //       .value.toLowerCase();
+    //   //     newData.launchpadId = +returnValues.launchIndex;
+    //   //     newData.tokenId = +returnValues.nftId;
+    //   //     newData.isOwnerCreated = true;
+    //   //     newData.refCode = returnValues.refCode;
+    //   //     newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+    //   //     newData.level = +returnValues.launchIndex + 1;
+    //   //     newData.type = 'market';
+    //   //     newData.isMarket = true;
+
+    //   //     arr.push(newData);
+    //   //   } else if (data?.name == 'buyNFT') {
+    //   //     const { returnValues } = await this.fetchEvent(
+    //   //       'Buy',
+    //   //       item.blockNumber
+    //   //     );
+    //   //     newData.address = returnValues.user.toLowerCase();
+    //   //     newData.launchpadId = +returnValues.launchIndex;
+    //   //     newData.tokenId = +returnValues.nftId;
+    //   //     newData.refCode = returnValues.refCode;
+    //   //     newData.amount = +GET_AMOUNT_LAUNCHPAD[returnValues.launchIndex];
+    //   //     newData.level = +returnValues.launchIndex + 1;
+    //   //     newData.type = 'market';
+    //   //     newData.isOwnerCreated = false;
+    //   //     newData.isMarket = true;
+
+    //   //     arr.push(newData);
+    //   //   }
+    //   // }
+    // }
+
+    // const promises = [];
+
+    // for (const item of arr) {
+    //   await this.createTransaction(item);
+    // }
+
+    // await Promise.all(promises);
+
+    // if (response.data?.result?.length) {
+    //   await this.configService.update(
+    //     CONFIG.LAST_BLOCK,
+    //     `${response.data?.result[0].blockNumber}`
+    //   );
+    // }
   }
 
   async fetchEvent(name: string, blockNumber: string) {

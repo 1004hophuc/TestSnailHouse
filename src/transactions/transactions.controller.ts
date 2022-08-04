@@ -14,6 +14,11 @@ export class TransactionsController {
     return this.transactionsService.getUserStaked(address.toLowerCase());
   }
 
+  @Get('cron-job')
+  cronTest() {
+    return this.transactionsService.fetchTrans();
+  }
+
   @Get('dao-users')
   getByStaked() {
     return this.transactionsService.getByStaked(true);
