@@ -102,7 +102,7 @@ export class ProfitWithdrawerService {
       const isPending = await this.isUserPendingWithdraw(user, type);
       if (isPending) return false;
 
-      const PRIVATE_KEY = process.env.KEY_ADMIN;
+      const PRIVATE_KEY = process.env.PROFIT_KEY_ADMIN;
       const CONTRACT_REWARDS = process.env.CONTRACT_REWARDS;
 
       const contract = new web3.eth.Contract(
