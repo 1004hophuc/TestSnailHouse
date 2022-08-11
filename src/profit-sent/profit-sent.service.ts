@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
+import { REWARD_KEY_TYPE } from 'src/profit/profit.service';
+import { getDateInterval } from 'src/utils/helper';
 import { Repository } from 'typeorm';
 import { CreateProfitSentDto } from './dto/create-profit-sent.dto';
 import { UpdateProfitSentDto } from './dto/update-profit-sent.dto';
@@ -16,11 +19,30 @@ export class ProfitSentService {
     return saveProfit;
   }
 
-  async findLastRewards() {
-    const [lastRecord] = await this.profitSentRepo.find({
-      order: { dateSendReward: 'DESC' },
-    });
+  async findLastRewards(type: PROFIT_TYPE) {
+    const { start, end } = getDateInterval(new Date());
 
-    return lastRecord;
+    const [profitSentRewards, todayProfitSent] = await Promise.all([
+      this.profitSentRepo.find({
+        order: { dateSendReward: 'DESC' },
+      }),
+      this.profitSentRepo.find({
+        where: {
+          dateSendReward: {
+            $gte: start * 1000,
+            $lte: end * 1000,
+          },
+        },
+      }),
+    ]);
+
+    const todayProfit = todayProfitSent.reduce(
+      (accu, profit) => (accu += profit[REWARD_KEY_TYPE[type]]),
+      0
+    );
+
+    const [lastRecord] = profitSentRewards;
+
+    return [lastRecord, todayProfit];
   }
 }

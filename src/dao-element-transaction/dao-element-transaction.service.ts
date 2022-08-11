@@ -168,44 +168,51 @@ export class DaoElementTransactionService {
 
       latestMarketTransaction.length && marketTransactions.shift();
 
-      const result = await Promise.map(
-        marketTransactions,
-        async (transaction) => {
-          const txReceipt = await web3.eth.getTransactionReceipt(
-            transaction?.hash
+      for (let i = 0; i < marketTransactions.length; i++) {
+        const transaction = marketTransactions[i];
+
+        const txReceipt = await web3.eth.getTransactionReceipt(
+          transaction?.hash
+        );
+
+        const values = await this.getTotalValueFromTxReceipt(txReceipt);
+
+        const insertData = {
+          txhash: transaction.hash,
+          type: ElementType.MARKET,
+          block_number: transaction.blockNumber,
+          timestamp: +transaction.timeStamp,
+          from_address: transaction.from,
+          to_address: transaction.to,
+        };
+
+        const corkPrice = await this.corkPriceToBUSD();
+
+        for (let j = 0; j < values.length; j++) {
+          const value = values[j];
+          let corkValue = value.total;
+
+          if (value.unit_token_address.toLowerCase() === busdAddress) {
+            corkValue = await this.tokenPriceInCork(
+              web3.utils.toWei(value.total + ''),
+              corkPrice
+            );
+          }
+
+          await this.profitService.calculateMarketProfit(
+            +corkValue,
+            insertData.timestamp
           );
 
-          const values = await this.getTotalValueFromTxReceipt(txReceipt);
-
-          const insertData = {
-            txhash: transaction.hash,
-            type: ElementType.MARKET,
-            block_number: transaction.blockNumber,
-            timestamp: +transaction.timeStamp,
-            from_address: transaction.from,
-            to_address: transaction.to,
-          };
-
-          const corkPrice = await this.corkPriceToBUSD();
-          await Promise.map(values, async (value) => {
-            let corkValue = value.total;
-
-            if (value.unit_token_address.toLowerCase() === busdAddress) {
-              corkValue = await this.tokenPriceInCork(
-                web3.utils.toWei(value.total + ''),
-                corkPrice
-              );
-            }
-            await this.daoElementTransactionReposity.insert({
-              ...insertData,
-              value: value.total,
-              unit_token_address: value.unit_token_address,
-              unit_token_name: value.unit_token_name,
-              corkValue: +corkValue,
-            });
+          await this.daoElementTransactionReposity.insert({
+            ...insertData,
+            value: value.total,
+            unit_token_address: value.unit_token_address,
+            unit_token_name: value.unit_token_name,
+            corkValue: +corkValue,
           });
         }
-      );
+      }
 
       console.log('DONE MARKET JOB !');
     } catch (error) {

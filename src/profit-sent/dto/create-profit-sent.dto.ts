@@ -17,10 +17,6 @@ export class CreateProfitSentDto {
 
   // per user
   @IsNumber()
-  marketProfit: number;
-
-  // per user
-  @IsNumber()
   nftLaunchpadProfit: number;
 
   // per user

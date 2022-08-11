@@ -16,9 +16,6 @@ export class ProfitSent extends AbstractEntity {
   seedInvestProfit: number;
 
   @Column()
-  marketProfit: number;
-
-  @Column()
   nftLaunchpadProfit: number;
 
   @Column()

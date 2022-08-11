@@ -1,5 +1,5 @@
 import { AbstractEntity } from 'src/common/entities';
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, Index, ObjectID, ObjectIdColumn } from 'typeorm';
 
 export enum PROFIT_TYPE {
   IDO = 'ido',
@@ -16,6 +16,7 @@ export class Profit extends AbstractEntity {
   id: ObjectID;
 
   @Column()
+  @Index()
   user: string;
 
   @Column()

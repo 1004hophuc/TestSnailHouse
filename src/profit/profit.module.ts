@@ -8,6 +8,7 @@ import { RewardsModule } from 'src/rewards/rewards.module';
 import { ProfitSentModule } from 'src/profit-sent/profit-sent.module';
 import { ProfitWithdrawerModule } from 'src/profit-withdrawer/profit-withdrawer.module';
 import { ProfitSwapSentModule } from 'src/profit-swap-sent/profit-swap-sent.module';
+import { ProfitMarketSentModule } from 'src/profit-market-sent/profit-market-sent.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProfitSwapSentModule } from 'src/profit-swap-sent/profit-swap-sent.modu
     ProfitSentModule,
     forwardRef(() => ProfitWithdrawerModule),
     ProfitSwapSentModule,
+    ProfitMarketSentModule,
     TypeOrmModule.forFeature([Profit]),
   ],
   controllers: [ProfitController],

@@ -25,6 +25,7 @@ import { IdoNftModule } from './ido-nft/ido-nft.module';
 import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
 import { ProfitSentModule } from './profit-sent/profit-sent.module';
 import { ProfitSwapSentModule } from './profit-swap-sent/profit-swap-sent.module';
+import { ProfitMarketSentModule } from './profit-market-sent/profit-market-sent.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { ProfitSwapSentModule } from './profit-swap-sent/profit-swap-sent.module
     IdoTransactionModule,
     ProfitSentModule,
     ProfitSwapSentModule,
+    ProfitMarketSentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

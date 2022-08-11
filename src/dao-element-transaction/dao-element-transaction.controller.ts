@@ -8,8 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { DaoElementTransactionService } from './dao-element-transaction.service';
-import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transaction.dto';
-import { UpdateDaoElementTransactionDto } from './dto/update-dao-element-transaction.dto';
+
 
 @Controller('dao-element-transaction')
 export class DaoElementTransactionController {
@@ -21,6 +20,7 @@ export class DaoElementTransactionController {
   getPastEvent() {
     return this.daoElementTransactionService.getRouterTransaction();
   }
+  
 
   @Get('cork-price')
   getCorkPrice() {
