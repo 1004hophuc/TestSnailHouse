@@ -50,11 +50,14 @@ export class ProfitService {
       const itemReward = await this.rewardsService.findOne(id);
       const {
         idoReward,
-        marketReward,
         nftLaunchpadReward,
         nftGameReward,
         seedInvestReward,
         isSent,
+        idoPercent,
+        nftLaunchpadPercent,
+        nftGamePercent,
+        seedInvestPercent,
       } = itemReward;
       if (isSent) return;
 
@@ -65,39 +68,31 @@ export class ProfitService {
       if (totalDaoUser <= 0) return { message: 'No DAO members' };
 
       //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
-      // (70% of dex profit, except swap is 10%)
-      const idoProfit = profitDao(idoReward, DAO_PROFIT_PERCENT, totalDaoUser);
+      const idoProfit = profitDao(idoReward, idoPercent, totalDaoUser);
 
       const nftLaunchpadProfit = profitDao(
         nftLaunchpadReward,
-        DAO_PROFIT_PERCENT,
+        nftLaunchpadPercent,
         totalDaoUser
       );
       const nftGameProfit = profitDao(
         nftGameReward,
-        DAO_PROFIT_PERCENT,
+        nftGamePercent,
         totalDaoUser
       );
       const seedInvestProfit = profitDao(
         seedInvestReward,
-        DAO_PROFIT_PERCENT,
+        seedInvestPercent,
         totalDaoUser
       );
-
-      //  Mapping profit data of current reward.
-      // all DAO profit is 70% of the Reward, except swap
 
       let newUserList = [];
 
       for (let i = 0; i < userDaoList.length; i++) {
         const user = userDaoList[i];
 
-        const userDefaultData = {
-          user: user.address,
-          daoProfitPercent: DAO_PROFIT_PERCENT,
-        };
         const idoProfitData = {
-          ...userDefaultData,
+          user: user.address,
           amountProfit: idoProfit,
           weiAmountProfit: toWei(idoProfit),
           type: PROFIT_TYPE.IDO,
@@ -105,7 +100,7 @@ export class ProfitService {
         };
 
         const nftLaunchpadProfitData = {
-          ...userDefaultData,
+          user: user.address,
           amountProfit: nftLaunchpadProfit,
           weiAmountProfit: toWei(nftLaunchpadProfit),
           type: PROFIT_TYPE.NFTLAUNCHPAD,
@@ -113,7 +108,7 @@ export class ProfitService {
         };
 
         const nftGameProfitData = {
-          ...userDefaultData,
+          user: user.address,
           amountProfit: nftGameProfit,
           weiAmountProfit: toWei(nftGameProfit),
           type: PROFIT_TYPE.NFTGAME,
@@ -121,12 +116,20 @@ export class ProfitService {
         };
 
         const seedInvestProfitData = {
-          ...userDefaultData,
+          user: user.address,
           amountProfit: seedInvestProfit,
           weiAmountProfit: toWei(seedInvestProfit),
           type: PROFIT_TYPE.SEEDINVEST,
           dexProfit: seedInvestReward,
         };
+
+        const othersAutoProfit = Object.keys(AUTO_PROFIT_TYPE).map((key) => ({
+          user: user.address,
+          amountProfit: 0,
+          weiAmountProfit: toWei(0),
+          type: key,
+          dexProfit: 0,
+        }));
 
         const TYPE_DATA = {
           [PROFIT_TYPE.IDO]: idoProfitData,
@@ -140,6 +143,7 @@ export class ProfitService {
           // init data
           newUserList = [
             ...newUserList,
+            ...othersAutoProfit,
             idoProfitData,
             nftLaunchpadProfitData,
             nftGameProfitData,
@@ -176,6 +180,10 @@ export class ProfitService {
         nftLaunchpadProfit,
         nftGameProfit,
         seedInvestProfit,
+        idoPercent,
+        nftLaunchpadPercent,
+        nftGamePercent,
+        seedInvestPercent,
       };
 
       await this.profitSentService.create(profitSent);
@@ -203,10 +211,11 @@ export class ProfitService {
         profit: 0,
       };
 
-    const PROFIT_PERCENT =
-      type === PROFIT_TYPE.SWAP ? SWAP_PROFIT_PERCENT : DAO_PROFIT_PERCENT;
-
-    const profit = profitDao(rewardAmount, PROFIT_PERCENT, totalDaoUser);
+    const profit = profitDao(
+      rewardAmount,
+      AUTO_PROFIT_TYPE[type],
+      totalDaoUser
+    );
 
     let newUserList = [];
 
@@ -214,7 +223,6 @@ export class ProfitService {
       const userDao = userDaoList[i];
       const userDefaultData = {
         user: userDao.address,
-        daoProfitPercent: DAO_PROFIT_PERCENT,
       };
 
       const othersAutoProfit = Object.keys(AUTO_PROFIT_TYPE)
@@ -225,7 +233,6 @@ export class ProfitService {
           weiAmountProfit: toWei(0),
           type: key,
           dexProfit: 0,
-          daoProfitPercent: AUTO_PROFIT_TYPE[key],
         }));
 
       const currentProfitData = {
@@ -234,7 +241,6 @@ export class ProfitService {
         weiAmountProfit: toWei(profit),
         type,
         dexProfit: rewardAmount,
-        daoProfitPercent: PROFIT_PERCENT,
       };
 
       const idoProfitData = {
@@ -371,13 +377,7 @@ export class ProfitService {
           user,
           type,
         },
-        select: [
-          'user',
-          'type',
-          'amountProfit',
-          'weiAmountProfit',
-          'daoProfitPercent',
-        ],
+        select: ['user', 'type', 'amountProfit', 'weiAmountProfit'],
       });
 
       return profits;
@@ -386,33 +386,41 @@ export class ProfitService {
     }
   }
 
+  async getTodayRewardByType(type: PROFIT_TYPE) {
+    let latestReward = null;
+    let todayProfit = 0;
+    const { start } = getDateInterval(new Date());
+
+    if (type === PROFIT_TYPE.SWAP)
+      latestReward = await this.profitSwapService.findLastRewards();
+    else if (type === PROFIT_TYPE.MARKET)
+      latestReward = await this.profitMarketService.findLastRewards();
+    else
+      [latestReward, todayProfit] =
+        await this.profitSentService.findLastRewards(type);
+
+    if (!latestReward) return;
+
+    let todayReward = 0;
+
+    // If the latestReward is this day, so user's todayReward is the latestReward profit
+    if (
+      latestReward.dateSendReward === start * 1000 &&
+      AUTO_PROFIT_TYPE[type]
+    ) {
+      todayReward = latestReward[REWARD_KEY_TYPE[type]];
+    } else {
+      todayReward = todayProfit;
+    }
+
+    return { latestReward, todayReward };
+  }
+
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
-      let latestReward = null;
-      let todayProfit = 0;
-      const { start } = getDateInterval(new Date());
-
-      if (type === PROFIT_TYPE.SWAP)
-        latestReward = await this.profitSwapService.findLastRewards();
-      else if (type === PROFIT_TYPE.MARKET)
-        latestReward = await this.profitMarketService.findLastRewards();
-      else
-        [latestReward, todayProfit] =
-          await this.profitSentService.findLastRewards(type);
-
-      if (!latestReward) return;
-
-      let todayReward = 0;
-
-      // If the latestReward is this day, so user's todayReward is the latestReward profit
-      if (
-        latestReward.dateSendReward === start * 1000 &&
-        AUTO_PROFIT_TYPE[type]
-      ) {
-        todayReward = latestReward[REWARD_KEY_TYPE[type]];
-      } else {
-        todayReward = todayProfit;
-      }
+      const { latestReward, todayReward } = await this.getTodayRewardByType(
+        type
+      );
 
       const userProfit = await this.profitRepo.findOne({
         where: {
@@ -451,7 +459,7 @@ export class ProfitService {
 
       const data = {
         daoProfit: userProfit.dexProfit,
-        daoProfitPercent: userProfit.daoProfitPercent,
+        daoProfitPercent: latestReward.daoProfitPercent,
         profitPerUser: userProfit.amountProfit,
         totalUserProfit: userProfit.amountProfit,
         totalWithdraw: totalUserWithdrawed,
@@ -520,10 +528,14 @@ export class ProfitService {
     const profitTotal = profitTypes.reduce(
       async (tempObj: any, type: PROFIT_TYPE) => {
         const totalProfit = await this.totalProfitByType(user, type);
+        const { todayReward } = await this.getTodayRewardByType(type);
         const resolveObj = await tempObj; // wait for the previous obj done
         return {
           ...resolveObj,
-          [type]: totalProfit,
+          [type]: {
+            total: totalProfit,
+            todayReward,
+          },
         };
       },
       Promise.resolve({})

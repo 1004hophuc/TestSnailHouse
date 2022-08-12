@@ -4,9 +4,6 @@ import { Column, Entity } from 'typeorm';
 @Entity('rewards')
 export class Reward extends AbstractEntity {
   @Column()
-  dateReward: number;
-
-  @Column()
   idoReward: number;
 
   @Column()
@@ -25,20 +22,14 @@ export class Reward extends AbstractEntity {
   isSent: boolean;
 
   @Column()
-  idoURL: string;
+  idoPercent: number;
 
   @Column()
-  swapURL: string;
+  nftLaunchpadPercent: number;
 
   @Column()
-  marketURL: string;
+  nftGamePercent: number;
 
   @Column()
-  nftLaunchpadURL: string;
-
-  @Column()
-  seedInvestURL: string;
-
-  @Column()
-  nftGameURL: string;
+  seedInvestPercent: number;
 }

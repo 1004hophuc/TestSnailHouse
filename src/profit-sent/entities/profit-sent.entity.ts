@@ -20,4 +20,16 @@ export class ProfitSent extends AbstractEntity {
 
   @Column()
   nftGameProfit: number;
+
+  @Column()
+  idoPercent: number;
+
+  @Column()
+  seedInvestPercent: number;
+
+  @Column()
+  nftLaunchpadPercent: number;
+
+  @Column()
+  nftGamePercent: number;
 }

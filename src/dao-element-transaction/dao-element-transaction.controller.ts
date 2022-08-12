@@ -18,7 +18,7 @@ export class DaoElementTransactionController {
 
   @Get()
   getPastEvent() {
-    return this.daoElementTransactionService.getRouterTransaction();
+    return this.daoElementTransactionService.getMarketTransaction();
   }
   
 

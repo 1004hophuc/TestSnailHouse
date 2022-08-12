@@ -14,9 +14,4 @@ import { UpdateProfitSentDto } from './dto/update-profit-sent.dto';
 @Controller('profit-sent')
 export class ProfitSentController {
   constructor(private readonly profitSentService: ProfitSentService) {}
-
-  @Post()
-  create(@Body() createProfitSentDto: CreateProfitSentDto) {
-    return this.profitSentService.create(createProfitSentDto);
-  }
 }

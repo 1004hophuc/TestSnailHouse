@@ -25,9 +25,6 @@ export class RewardsService {
   public async getListPaginate(page: number, limit: number) {
     try {
       const [data, total] = await this.rewardRepo.findAndCount({
-        order: {
-          dateReward: 'ASC',
-        },
         skip: (page - 1) * limit,
         take: limit,
       });
@@ -43,7 +40,6 @@ export class RewardsService {
         where: {
           isSent: true,
         },
-        order: { dateReward: 'DESC' },
       });
 
       return lastRecord;

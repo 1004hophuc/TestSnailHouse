@@ -62,4 +62,9 @@ export class ProfitController {
     const lowercaseAddress = user.toLowerCase();
     return this.profitService.profitsTotalType(lowercaseAddress);
   }
+
+  @Get('today-profit')
+  getTodayRewardByType() {
+    return this.profitService.getTodayRewardByType(PROFIT_TYPE.NFTLAUNCHPAD);
+  }
 }

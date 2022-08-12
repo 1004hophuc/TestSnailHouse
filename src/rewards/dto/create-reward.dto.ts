@@ -15,10 +15,10 @@ export class CreateRewardDto {
   @Min(0)
   idoReward: number;
 
-  // @IsNotEmpty()
-  // @IsNumber()
-  // @Min(0)
-  // swapReward: number;
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  idoPercent: number;
 
   @IsNotEmpty()
   @IsNumber()
@@ -27,16 +27,26 @@ export class CreateRewardDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @Min(1)
+  nftLaunchpadPercent: number;
+
+  @IsNotEmpty()
+  @IsNumber()
   @Min(0)
   nftGameReward: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  nftGamePercent: number;
 
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
   seedInvestReward: number;
 
-  // @IsNotEmpty()
-  // @IsPositive()
-  // @Max(getCurrentTime())
-  // dateReward: number;
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  seedInvestPercent: number;
 }

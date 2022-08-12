@@ -21,7 +21,4 @@ export class CreateProfitDto {
   @IsNumber()
   dexProfit: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  daoProfitPercent: number;
 }
