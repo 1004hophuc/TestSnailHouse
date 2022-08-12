@@ -23,6 +23,7 @@ export class TransactionsController {
   getByStaked() {
     return this.transactionsService.getByStaked(true);
   }
+
   @Get()
   async get(@Query() query: QueryTransactionDto) {
     try {
@@ -46,6 +47,7 @@ export class TransactionsController {
   async detail(@Query() query) {
     try {
       const data = await this.transactionsService.findTransMarket(query);
+      console.log('data:', data);
 
       return {
         status: 200,

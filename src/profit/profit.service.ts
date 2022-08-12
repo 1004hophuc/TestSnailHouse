@@ -32,6 +32,13 @@ export const REWARD_KEY_TYPE = {
   [PROFIT_TYPE.SEEDINVEST]: 'seedInvestProfit',
 };
 
+export const REWARD_KEY_PERCENT_TYPE = {
+  [PROFIT_TYPE.IDO]: 'idoPercent',
+  [PROFIT_TYPE.NFTLAUNCHPAD]: 'nftLaunchpadPercent',
+  [PROFIT_TYPE.NFTGAME]: 'nftGamePercent',
+  [PROFIT_TYPE.SEEDINVEST]: 'seedInvestPercent',
+};
+
 @Injectable()
 export class ProfitService {
   constructor(
@@ -389,6 +396,8 @@ export class ProfitService {
   async getTodayRewardByType(type: PROFIT_TYPE) {
     let latestReward = null;
     let todayProfit = 0;
+    let daoProfitPercent = 0;
+
     const { start } = getDateInterval(new Date());
 
     if (type === PROFIT_TYPE.SWAP)
@@ -411,16 +420,18 @@ export class ProfitService {
       todayReward = latestReward[REWARD_KEY_TYPE[type]];
     } else {
       todayReward = todayProfit;
+      daoProfitPercent = latestReward[REWARD_KEY_PERCENT_TYPE[type]];
     }
 
-    return { latestReward, todayReward };
+    if (AUTO_PROFIT_TYPE[type]) daoProfitPercent = AUTO_PROFIT_TYPE[type];
+
+    return { latestReward, todayReward, daoProfitPercent };
   }
 
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
-      const { latestReward, todayReward } = await this.getTodayRewardByType(
-        type
-      );
+      const { latestReward, todayReward, daoProfitPercent } =
+        await this.getTodayRewardByType(type);
 
       const userProfit = await this.profitRepo.findOne({
         where: {
@@ -459,7 +470,7 @@ export class ProfitService {
 
       const data = {
         daoProfit: userProfit.dexProfit,
-        daoProfitPercent: latestReward.daoProfitPercent,
+        daoProfitPercent,
         profitPerUser: userProfit.amountProfit,
         totalUserProfit: userProfit.amountProfit,
         totalWithdraw: totalUserWithdrawed,

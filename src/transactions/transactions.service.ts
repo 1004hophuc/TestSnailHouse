@@ -167,9 +167,7 @@ export class TransactionsService {
       //   return false;
       // }
 
-      const item = await this.transactionsRepository.create(
-        createTransactionDto
-      );
+      const item = this.transactionsRepository.create(createTransactionDto);
       const data = await this.transactionsRepository.save(item);
 
       if (createTransactionDto.isMarket && createTransactionDto.tokenId) {
@@ -276,24 +274,18 @@ export class TransactionsService {
         const end = i == round - 1 ? newBlock : startBlock + 5000 * (i + 1);
 
         const dataReceive = await this.testCronjobA(start, end, 'Receive');
-        console.log('dataReceive:', dataReceive.length);
         const dataBuy = await this.testCronjobA(start, end);
-        console.log('\n\n\n\nThe fak: ', i);
-        console.log(start, end);
 
         finalData = [...finalData, ...dataReceive, ...dataBuy];
-        console.log('length: ', finalData.length);
       }
-
-      console.log('sososososos');
 
       for (const item of finalData) {
         await this.createTransaction(item);
       }
 
-      if (finalData?.length) {
-        await this.configService.update(CONFIG.LAST_BLOCK, `${newBlock + 1}`);
-      }
+      // if (finalData?.length) {
+      //   await this.configService.update(CONFIG.LAST_BLOCK, `${newBlock + 1}`);
+      // }
 
       return { length: finalData.length, finalData };
     } catch (e) {
