@@ -59,7 +59,7 @@ export class DaoElementTransactionService {
 
   async deleteRouterTransaction() {
     await this.daoElementTransactionReposity.delete({
-      type: ElementType.MARKET,
+      type: ElementType.ROUTER,
     });
   }
 

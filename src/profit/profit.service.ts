@@ -543,10 +543,13 @@ export class ProfitService {
       async (tempObj: any, type: PROFIT_TYPE) => {
         const total = await this.totalProfitByType(user, type);
 
-        const { todayReward } = await this.getTodayRewardByType(type);
+        let { todayReward } = await this.getTodayRewardByType(type);
         totalProfit.total += total;
         totalProfit.today += todayReward;
+
         const resolveObj = await tempObj; // wait for the previous obj done
+
+        if (total < todayReward) todayReward = total;
         return {
           ...resolveObj,
           [type]: {
@@ -558,6 +561,8 @@ export class ProfitService {
       Promise.resolve({})
     );
 
+    if (totalProfit.total < totalProfit.today)
+      totalProfit.today = totalProfit.total;
     return {
       ...profitTotal,
       totalProfit,

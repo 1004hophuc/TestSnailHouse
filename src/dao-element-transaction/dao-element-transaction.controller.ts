@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { DaoElementTransactionService } from './dao-element-transaction.service';
 
-
 @Controller('dao-element-transaction')
 export class DaoElementTransactionController {
   constructor(
@@ -18,9 +17,8 @@ export class DaoElementTransactionController {
 
   @Get()
   getPastEvent() {
-    return this.daoElementTransactionService.getMarketTransaction();
+    return this.daoElementTransactionService.getRouterTransaction();
   }
-  
 
   @Get('cork-price')
   getCorkPrice() {
