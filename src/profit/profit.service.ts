@@ -524,16 +524,22 @@ export class ProfitService {
       PROFIT_TYPE.NFTLAUNCHPAD,
       PROFIT_TYPE.NFTGAME,
     ];
-
-    const profitTotal = profitTypes.reduce(
+    const totalProfit = {
+      total: 0,
+      today: 0,
+    };
+    const profitTotal = await profitTypes.reduce(
       async (tempObj: any, type: PROFIT_TYPE) => {
-        const totalProfit = await this.totalProfitByType(user, type);
+        const total = await this.totalProfitByType(user, type);
+
         const { todayReward } = await this.getTodayRewardByType(type);
+        totalProfit.total += total;
+        totalProfit.today += todayReward;
         const resolveObj = await tempObj; // wait for the previous obj done
         return {
           ...resolveObj,
           [type]: {
-            total: totalProfit,
+            total,
             todayReward,
           },
         };
@@ -541,7 +547,10 @@ export class ProfitService {
       Promise.resolve({})
     );
 
-    return profitTotal;
+    return {
+      ...profitTotal,
+      totalProfit,
+    };
   }
 
   async findAll() {
