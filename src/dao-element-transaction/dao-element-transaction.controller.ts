@@ -13,11 +13,22 @@ import { DaoElementTransactionService } from './dao-element-transaction.service'
 export class DaoElementTransactionController {
   constructor(
     private readonly daoElementTransactionService: DaoElementTransactionService
-  ) {}
+  ) { }
+
+  @Get('router')
+  getRouter() {
+    return this.daoElementTransactionService.getRouterTransaction();
+  }
 
   @Get()
-  getPastEvent() {
-    return this.daoElementTransactionService.getRouterTransaction();
+  delete() {
+    return this.daoElementTransactionService.deleteRouterTransaction()
+  }
+
+
+  @Get('market')
+  getMarket() {
+    return this.daoElementTransactionService.getMarketTransaction();
   }
 
   @Get('cork-price')

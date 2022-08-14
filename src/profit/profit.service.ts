@@ -6,18 +6,19 @@ import { Repository } from 'typeorm';
 import { Profit, PROFIT_TYPE } from './entities/profit.entity';
 import { UserProfitDto } from './dto/user-profit.dto';
 import { toWei } from 'src/utils/web3';
-import { getCurrentTime, profitDao } from 'src/utils';
+import { bigNumMul, getCurrentTime, profitDao } from 'src/utils';
 import { ProfitSentService } from 'src/profit-sent/profit-sent.service';
 import { ProfitWithdrawerService } from 'src/profit-withdrawer/profit-withdrawer.service';
 import { ProfitSwapSentService } from 'src/profit-swap-sent/profit-swap-sent.service';
 import { getCurrentInSecond, getDateInterval } from 'src/utils/helper';
 import { ProfitMarketSentService } from 'src/profit-market-sent/profit-market-sent.service';
+import { ProfitSent } from 'src/profit-sent/entities/profit-sent.entity'
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;
 const SWAP_PROFIT_PERCENT = 10;
 
-// currently having automatically calculate winery swap profit & winery marketplace profit
+// currently having automatically calculate swap profit & winery marketplace profit
 const AUTO_PROFIT_TYPE = {
   [PROFIT_TYPE.SWAP]: SWAP_PROFIT_PERCENT,
   [PROFIT_TYPE.MARKET]: DAO_PROFIT_PERCENT,
@@ -50,7 +51,7 @@ export class ProfitService {
     private readonly profitWithdrawService: ProfitWithdrawerService,
     private readonly profitSwapService: ProfitSwapSentService,
     private readonly profitMarketService: ProfitMarketSentService
-  ) {}
+  ) { }
 
   async calculateProfit(id: string) {
     try {
@@ -104,6 +105,7 @@ export class ProfitService {
           weiAmountProfit: toWei(idoProfit),
           type: PROFIT_TYPE.IDO,
           dexProfit: idoReward,
+
         };
 
         const nftLaunchpadProfitData = {
@@ -112,6 +114,7 @@ export class ProfitService {
           weiAmountProfit: toWei(nftLaunchpadProfit),
           type: PROFIT_TYPE.NFTLAUNCHPAD,
           dexProfit: nftLaunchpadReward,
+
         };
 
         const nftGameProfitData = {
@@ -120,6 +123,7 @@ export class ProfitService {
           weiAmountProfit: toWei(nftGameProfit),
           type: PROFIT_TYPE.NFTGAME,
           dexProfit: nftGameReward,
+
         };
 
         const seedInvestProfitData = {
@@ -128,6 +132,7 @@ export class ProfitService {
           weiAmountProfit: toWei(seedInvestProfit),
           type: PROFIT_TYPE.SEEDINVEST,
           dexProfit: seedInvestReward,
+
         };
 
         const othersAutoProfit = Object.keys(AUTO_PROFIT_TYPE).map((key) => ({
@@ -162,6 +167,7 @@ export class ProfitService {
         for (let j = 0; j < existUsers.length; j++) {
           const existUser = existUsers[j];
           const { type, user } = existUser;
+
 
           if (AUTO_PROFIT_TYPE[type]) continue;
 
@@ -235,7 +241,7 @@ export class ProfitService {
       const othersAutoProfit = Object.keys(AUTO_PROFIT_TYPE)
         .filter((key) => key !== type)
         .map((key) => ({
-          ...userDefaultData,
+          user: userDao.address,
           amountProfit: 0,
           weiAmountProfit: toWei(0),
           type: key,
@@ -393,10 +399,12 @@ export class ProfitService {
     }
   }
 
-  async getTodayRewardByType(type: PROFIT_TYPE) {
+  async getRewardByType(user: string, type: PROFIT_TYPE) {
     let latestReward = null;
     let todayProfit = 0;
-    let daoProfitPercent = 0;
+    let daoDividents = 0;
+    let profitSentRewards = [];
+    let todayReward = 0;
 
     const { start } = getDateInterval(new Date());
 
@@ -405,33 +413,41 @@ export class ProfitService {
     else if (type === PROFIT_TYPE.MARKET)
       latestReward = await this.profitMarketService.findLastRewards();
     else
-      [latestReward, todayProfit] =
+      [latestReward, todayProfit, profitSentRewards] =
         await this.profitSentService.findLastRewards(type);
 
-    if (!latestReward) return;
+    if (!latestReward) return { latestReward, todayReward, daoDividents };
 
-    let todayReward = 0;
+
+    const { dexProfit } = await this.findOne({ user, type })
 
     // If the latestReward is this day, so user's todayReward is the latestReward profit
     if (
       latestReward.dateSendReward === start * 1000 &&
       AUTO_PROFIT_TYPE[type]
     ) {
-      todayReward = latestReward[REWARD_KEY_TYPE[type]];
+      todayReward = latestReward[REWARD_KEY_TYPE[type]] || 0;
     } else {
       todayReward = todayProfit;
-      daoProfitPercent = latestReward[REWARD_KEY_PERCENT_TYPE[type]];
+      daoDividents = profitSentRewards.reduce((accu, reward: ProfitSent) => {
+        if (accu === dexProfit)
+          return accu
+        return accu += (bigNumMul(reward[REWARD_KEY_TYPE[type]], reward.totalDaoUser))
+      }, 0)
     }
 
-    if (AUTO_PROFIT_TYPE[type]) daoProfitPercent = AUTO_PROFIT_TYPE[type];
+    if (AUTO_PROFIT_TYPE[type]) {
+      daoDividents = (dexProfit * AUTO_PROFIT_TYPE[type]) / 100
 
-    return { latestReward, todayReward, daoProfitPercent };
+    };
+
+    return { latestReward, todayReward, daoDividents };
   }
 
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
-      const { latestReward, todayReward, daoProfitPercent } =
-        await this.getTodayRewardByType(type);
+      const { latestReward, todayReward, daoDividents } =
+        await this.getRewardByType(user, type);
 
       const userProfit = await this.profitRepo.findOne({
         where: {
@@ -470,7 +486,7 @@ export class ProfitService {
 
       const data = {
         daoProfit: userProfit.dexProfit,
-        daoProfitPercent,
+        daoDividents,
         profitPerUser: userProfit.amountProfit,
         totalUserProfit: userProfit.amountProfit,
         totalWithdraw: totalUserWithdrawed,
@@ -524,9 +540,12 @@ export class ProfitService {
   async profitsTotalType(user: string) {
     // check if there was any user profit
     const profits = await this.findAll();
-    if (profits.length <= 0) return {};
+    const totalProfit = {
+      total: 0,
+      today: 0,
+    };
+    let profitTotal;
 
-    // Type arr to get all the user total profit of each type
     const profitTypes = [
       PROFIT_TYPE.IDO,
       PROFIT_TYPE.SWAP,
@@ -535,15 +554,27 @@ export class ProfitService {
       PROFIT_TYPE.NFTLAUNCHPAD,
       PROFIT_TYPE.NFTGAME,
     ];
-    const totalProfit = {
-      total: 0,
-      today: 0,
-    };
-    const profitTotal = await profitTypes.reduce(
+    profitTotal = profitTypes.reduce(
+      (tempObj: any, type: PROFIT_TYPE) => {
+        return {
+          ...tempObj,
+          [type]: {
+            total: 0,
+            todayReward: 0,
+          },
+        };
+      },
+      {}
+    );
+
+    if (profits.length <= 0) return { ...profitTotal, totalProfit };
+
+
+    profitTotal = await profitTypes.reduce(
       async (tempObj: any, type: PROFIT_TYPE) => {
         const total = await this.totalProfitByType(user, type);
 
-        let { todayReward } = await this.getTodayRewardByType(type);
+        let { todayReward } = await this.getRewardByType(user, type);
         totalProfit.total += total;
         totalProfit.today += todayReward;
 
@@ -624,6 +655,12 @@ export class ProfitService {
     } catch (error) {
       return error;
     }
+  }
+
+
+  async findOne(query: any) {
+    const response = await this.profitRepo.findOne(query)
+    return response
   }
 
   //   async updateUserWithdraw(user: string, type: PROFIT_TYPE) {

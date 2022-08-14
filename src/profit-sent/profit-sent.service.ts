@@ -12,7 +12,7 @@ import { ProfitSent } from './entities/profit-sent.entity';
 export class ProfitSentService {
   constructor(
     @InjectRepository(ProfitSent) private profitSentRepo: Repository<ProfitSent>
-  ) {}
+  ) { }
   async create(createProfitSentDto: CreateProfitSentDto) {
     const profitSentItem = this.profitSentRepo.create(createProfitSentDto);
     const saveProfit = await this.profitSentRepo.save(profitSentItem);
@@ -43,6 +43,6 @@ export class ProfitSentService {
 
     const [lastRecord] = profitSentRewards;
 
-    return [lastRecord, todayProfit];
+    return [lastRecord, todayProfit, profitSentRewards];
   }
 }

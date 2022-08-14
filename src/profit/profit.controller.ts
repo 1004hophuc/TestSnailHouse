@@ -15,7 +15,7 @@ import { PROFIT_TYPE } from './entities/profit.entity';
 
 @Controller('profit')
 export class ProfitController {
-  constructor(private readonly profitService: ProfitService) {}
+  constructor(private readonly profitService: ProfitService) { }
 
   @Get('/calculate/:id')
   calculateProfit(@Param('id') id: string) {
@@ -63,8 +63,5 @@ export class ProfitController {
     return this.profitService.profitsTotalType(lowercaseAddress);
   }
 
-  @Get('today-profit')
-  getTodayRewardByType() {
-    return this.profitService.getTodayRewardByType(PROFIT_TYPE.NFTLAUNCHPAD);
-  }
+
 }

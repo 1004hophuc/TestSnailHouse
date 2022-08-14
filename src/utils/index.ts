@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import moment from 'moment';
 
 export const getCurrentTime = () => new Date().getTime();
@@ -25,3 +26,5 @@ export const getCurrentHourDate = () => {
 export function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+export const bigNumMul = (num1: number, num2: number): number => +(new BigNumber(num1).multipliedBy(num2).toString())

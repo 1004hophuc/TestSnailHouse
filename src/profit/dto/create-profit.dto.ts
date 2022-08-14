@@ -21,4 +21,5 @@ export class CreateProfitDto {
   @IsNumber()
   dexProfit: number;
 
+
 }

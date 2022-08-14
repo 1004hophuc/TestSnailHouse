@@ -1,5 +1,5 @@
 import { AbstractEntity } from 'src/common/entities';
-import { Column, Entity, Index, ObjectID, ObjectIdColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, Index, ObjectID, ObjectIdColumn } from 'typeorm';
 
 export enum PROFIT_TYPE {
   IDO = 'ido',
