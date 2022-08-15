@@ -397,22 +397,20 @@ export class TransactionsService {
     const { start, end, daysInMonth } = getMonthTimeRange(month);
     const monthTransactions = await this.transactionsRepository.find({
       where: {
-        timestamp: { $gt: start * 1000, $lt: end * 1000 },
+        timestamp: { $lt: end * 1000 },
       },
       order: { timestamp: 'ASC' },
     });
 
     let startOfDay: number;
+
     const transactionPerDay = [...Array(daysInMonth).keys()].map((i) => {
       startOfDay = start + 86400 * i;
       const endOfDay = startOfDay + 86399;
 
-      const dayTransaction = monthTransactions.filter((transaction) => {
-        return (
-          transaction.timestamp / 1000 >= startOfDay &&
-          transaction.timestamp / 1000 <= endOfDay
-        );
-      });
+      const dayTransaction = monthTransactions.filter(
+        (transaction) => transaction.timestamp / 1000 <= endOfDay
+      );
 
       return { time: startOfDay * 1000, value: dayTransaction.length };
     });

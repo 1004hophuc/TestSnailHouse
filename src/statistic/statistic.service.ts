@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DaoElementTransactionService } from 'src/dao-element-transaction/dao-element-transaction.service';
 import { ElementType } from 'src/dao-element-transaction/entities/dao-element-transaction.entity';
+import { ProfitService } from 'src/profit/profit.service';
 import { TransactionsService } from 'src/transactions/transactions.service';
 import { CreateStatisticDto } from './dto/create-statistic.dto';
 import { UpdateStatisticDto } from './dto/update-statistic.dto';
@@ -9,7 +10,8 @@ import { UpdateStatisticDto } from './dto/update-statistic.dto';
 export class StatisticService {
   constructor(
     private transactionService: TransactionsService,
-    private daoElementService: DaoElementTransactionService
+    private daoElementService: DaoElementTransactionService,
+    private profitService: ProfitService
   ) {}
   create(createStatisticDto: CreateStatisticDto) {
     return 'This action adds a new statistic';
@@ -21,6 +23,14 @@ export class StatisticService {
     );
 
     return transactionMonth;
+  }
+
+  async findTotalProfits(month: number) {
+    const totalProfit = await this.profitService.getStatisticProfitPerMonth(
+      month
+    );
+
+    return totalProfit;
   }
 
   async findRewardTypeByMonth(type: ElementType, month: number) {

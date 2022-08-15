@@ -13,7 +13,7 @@ import { DaoElementTransactionService } from './dao-element-transaction.service'
 export class DaoElementTransactionController {
   constructor(
     private readonly daoElementTransactionService: DaoElementTransactionService
-  ) { }
+  ) {}
 
   @Get('router')
   getRouter() {
@@ -22,9 +22,8 @@ export class DaoElementTransactionController {
 
   @Get()
   delete() {
-    return this.daoElementTransactionService.deleteRouterTransaction()
+    return this.daoElementTransactionService.deleteRouterTransaction();
   }
-
 
   @Get('market')
   getMarket() {

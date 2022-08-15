@@ -43,4 +43,17 @@ export class ProfitMarketSentService {
 
     return lastRecord;
   }
+
+  async findProfitToEndDay(endTime: number) {
+    const monthProfit = await this.profitMarketRepo.find({
+      where: {
+        dateSendReward: { $lt: endTime * 1000 },
+      },
+      order: {
+        dateSendReward: 'DESC',
+      },
+    });
+
+    return monthProfit;
+  }
 }

@@ -40,6 +40,11 @@ export class StatisticController {
     return this.statisticService.findTransactionByMonth(month);
   }
 
+  @Get('total-profit/:month')
+  findTotalProfits(@Param('month') month: number) {
+    return this.statisticService.findTotalProfits(month);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

@@ -28,7 +28,7 @@ export class DaoElementTransactionService {
     @InjectRepository(DaoElementTransaction)
     private daoElementTransactionReposity: Repository<DaoElementTransaction>,
     private readonly profitService: ProfitService
-  ) { }
+  ) {}
 
   create(createDaoElementTransactionDto: CreateDaoElementTransactionDto) {
     return 'This action adds a new daoElementTransaction';
@@ -391,7 +391,7 @@ export class DaoElementTransactionService {
 
         if (
           parsedTopics[1]?.toLowerCase() ===
-          process.env.ZERO_ADDRESS.toLowerCase() &&
+            process.env.ZERO_ADDRESS.toLowerCase() &&
           parsedTopics[2]?.toLowerCase() === ownerAddress
         ) {
           let decodeData;
