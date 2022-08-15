@@ -15,7 +15,7 @@ import { PROFIT_TYPE } from './entities/profit.entity';
 
 @Controller('profit')
 export class ProfitController {
-  constructor(private readonly profitService: ProfitService) { }
+  constructor(private readonly profitService: ProfitService) {}
 
   @Get('/calculate/:id')
   calculateProfit(@Param('id') id: string) {
@@ -62,6 +62,4 @@ export class ProfitController {
     const lowercaseAddress = user.toLowerCase();
     return this.profitService.profitsTotalType(lowercaseAddress);
   }
-
-
 }

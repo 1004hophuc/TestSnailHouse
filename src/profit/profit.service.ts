@@ -620,9 +620,7 @@ export class ProfitService {
         userMonthProfit = {
           id: data[i].id,
           user: data[i].user,
-          // totalDaoUser: data[i].totalDaoUser,
-          // dateReward: data[i].dateReward,
-          // dateSendReward: data[i].dateSendReward,
+
           amountProfit: {
             ido: data[i].amountProfit,
             swap: data[i + 1].amountProfit,
@@ -667,41 +665,49 @@ export class ProfitService {
     ]);
 
     let startOfDay: number;
+    const currentTime = getCurrentTime();
 
-    const profitFromMonth = [...Array(daysInMonth).keys()].map((i) => {
-      startOfDay = start + 86400 * i;
-      const endOfDay = startOfDay + 86399;
+    const profitFromMonth = [...Array(daysInMonth).keys()]
+      .map((i) => {
+        startOfDay = start + 86400 * i;
+        const endOfDay = startOfDay + 86399;
 
-      const marketTotal = marketProfit
-        .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
-        .reduce((accu, profitSent) => (accu += profitSent.marketProfit), 0);
-
-      const swapTotal = swapProfit
-        .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
-        .reduce((accu, profitSent) => (accu += profitSent.swapProfit), 0);
-
-      const profitTotal = othersProfit
-        .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
-        .reduce((accu, profitSent) => {
-          return (accu += Object.keys(REWARD_KEY_TYPE).reduce(
-            (dayTotal, type) =>
-              AUTO_PROFIT_TYPE[type]
-                ? dayTotal
-                : (dayTotal += profitSent[REWARD_KEY_TYPE[type]]),
+        const marketTotal = marketProfit
+          .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
+          .reduce(
+            (accu, profitSent) =>
+              (accu += profitSent.marketProfit * profitSent.totalDaoUser),
             0
-          ));
-        }, 0);
+          );
 
-      return {
-        time: startOfDay * 1000,
-        value: marketTotal + swapTotal + profitTotal,
-      };
-    });
+        const swapTotal = swapProfit
+          .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
+          .reduce(
+            (accu, profitSent) =>
+              (accu += profitSent.swapProfit * profitSent.totalDaoUser),
+            0
+          );
+
+        const profitTotal = othersProfit
+          .filter((profitSent) => profitSent.dateSendReward / 1000 <= endOfDay)
+          .reduce((accu, profitSent) => {
+            const { totalDaoUser } = profitSent;
+            return (accu += Object.keys(REWARD_KEY_TYPE).reduce(
+              (dayTotal, type) =>
+                AUTO_PROFIT_TYPE[type]
+                  ? dayTotal
+                  : (dayTotal +=
+                      profitSent[REWARD_KEY_TYPE[type]] * totalDaoUser),
+              0
+            ));
+          }, 0);
+
+        return {
+          time: startOfDay * 1000,
+          value: marketTotal + swapTotal + profitTotal,
+        };
+      })
+      .filter((dayValue) => dayValue.time < currentTime);
     return profitFromMonth;
   }
-
-  //   async updateUserWithdraw(user: string, type: PROFIT_TYPE) {
-  //     await this.profitRepo.update({ user, type }, { isWithdraw: 1 });
-  //   }
-  //
 }

@@ -22,6 +22,7 @@ import axios from 'axios';
 import { Abi as NFTAbi } from '../contract/NFT';
 import { getMonthTimeRange } from '../utils/helper';
 import { UtilitiesService } from '../utils/sleep-service';
+import { getCurrentTime } from 'src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
@@ -404,16 +405,20 @@ export class TransactionsService {
 
     let startOfDay: number;
 
-    const transactionPerDay = [...Array(daysInMonth).keys()].map((i) => {
-      startOfDay = start + 86400 * i;
-      const endOfDay = startOfDay + 86399;
+    const currentTime = getCurrentTime();
 
-      const dayTransaction = monthTransactions.filter(
-        (transaction) => transaction.timestamp / 1000 <= endOfDay
-      );
+    const transactionPerDay = [...Array(daysInMonth).keys()]
+      .map((i) => {
+        startOfDay = start + 86400 * i;
+        const endOfDay = startOfDay + 86399;
 
-      return { time: startOfDay * 1000, value: dayTransaction.length };
-    });
+        const dayTransaction = monthTransactions.filter(
+          (transaction) => transaction.timestamp / 1000 <= endOfDay
+        );
+
+        return { time: startOfDay * 1000, value: dayTransaction.length };
+      })
+      .filter((dayValue) => dayValue.time < currentTime);
     return transactionPerDay;
   }
 

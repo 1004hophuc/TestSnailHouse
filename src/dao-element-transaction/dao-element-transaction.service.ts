@@ -39,7 +39,6 @@ export class DaoElementTransactionService {
     try {
       console.log('Start DAO element transaction job ');
       await this.getLaunchpadTransaction();
-      await this.getMarketTransaction();
       console.log('End DAO element transaction job ');
     } catch (error) {
       console.log(error?.response?.error);
@@ -51,6 +50,7 @@ export class DaoElementTransactionService {
   async fetchRouter() {
     try {
       await this.getRouterTransaction();
+      await this.getMarketTransaction();
     } catch (error) {
       console.log(error?.response?.error);
       throw error;
@@ -58,9 +58,9 @@ export class DaoElementTransactionService {
   }
 
   async deleteRouterTransaction() {
-    await this.daoElementTransactionReposity.delete({
-      type: ElementType.MARKET,
-    });
+    // await this.daoElementTransactionReposity.delete({
+    //   type: ElementType.MARKET,
+    // });
     await this.daoElementTransactionReposity.delete({
       type: ElementType.ROUTER,
     });
@@ -160,13 +160,12 @@ export class DaoElementTransactionService {
         },
       });
 
+      // return allTransactions.data;
+
       abiDecoder.addABI(marketAbi);
 
       const marketTransactions = allTransactions.data.result.filter(
-        (transaction) => {
-          const data = abiDecoder.decodeMethod(transaction.input);
-          if (data?.name === 'accept') return transaction;
-        }
+        (transaction) => transaction.functionName === 'accept(uint256 tokenId)'
       );
 
       latestMarketTransaction.length && marketTransactions.shift();
