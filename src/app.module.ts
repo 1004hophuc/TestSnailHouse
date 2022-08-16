@@ -51,7 +51,7 @@ import { ProfitMarketSentModule } from './profit-market-sent/profit-market-sent.
       logging: true,
     }),
 
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
     UsersModule,
     TransactionsModule,
     NftModule,

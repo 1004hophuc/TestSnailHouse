@@ -81,4 +81,9 @@ export class TransactionsController {
       };
     }
   }
+
+  @Get('staking-transactions')
+  fetchStakingTime() {
+    return this.transactionsService.fetchStakingTime();
+  }
 }

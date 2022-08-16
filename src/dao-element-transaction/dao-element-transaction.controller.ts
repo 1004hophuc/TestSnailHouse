@@ -20,10 +20,10 @@ export class DaoElementTransactionController {
     return this.daoElementTransactionService.getRouterTransaction();
   }
 
-  @Get()
-  delete() {
-    return this.daoElementTransactionService.deleteRouterTransaction();
-  }
+  // @Get()
+  // delete() {
+  //   return this.daoElementTransactionService.deleteRouterTransaction();
+  // }
 
   @Get('market')
   getMarket() {

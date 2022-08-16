@@ -129,6 +129,18 @@ export class TransactionsService {
     return { data, count };
   }
 
+  async findAllFilter(query) {
+    const transaction = await this.transactionsRepository.find(query);
+
+    return transaction;
+  }
+
+  async findOne(query) {
+    const transaction = await this.transactionsRepository.findOne(query);
+
+    return transaction;
+  }
+
   async createTransaction(createTransactionDto: CreateTransactionDto) {
     try {
       if (this?.['IS_IN_JOB_CREATE_PATIENT']) {
@@ -208,6 +220,7 @@ export class TransactionsService {
     try {
       console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
       await this.fetchTrans();
+      await this.fetchStakingTime();
     } catch (e) {
       console.log('cronTransaction failed: ', e);
     } finally {
@@ -216,7 +229,7 @@ export class TransactionsService {
     }
   }
 
-  async testCronjobA(startBlock, endBlock, name = 'Buy') {
+  async transactionJob(startBlock, endBlock, name = 'Buy') {
     const web3 = getWeb3();
     abiDecoder.addABI(MultiSendAbi);
 
@@ -258,6 +271,68 @@ export class TransactionsService {
     return fixData;
   }
 
+  async fetchStakingTime() {
+    const lastBlock = await this.configService.findOne('last_stake_block');
+
+    const stakeNFTTransactions = await axios.get(process.env.DOMAIN_BSC, {
+      params: {
+        address: process.env.CONTRACT_STAKING_NFT,
+        apikey: process.env.BSC_API_KEY,
+        action: 'txlist',
+        module: 'account',
+        sort: 'desc',
+        startblock: 0,
+      },
+    });
+
+    // Filter stake transactions
+    const stakeFunctionFilter = stakeNFTTransactions.data.result.filter(
+      (transaction) =>
+        transaction.functionName.includes('stake') && transaction.isError == 0
+    );
+
+    // Arr for update user stake timestamp with Promise.all
+
+    for (let i = 0; i < stakeFunctionFilter.length; i++) {
+      const transaction = stakeFunctionFilter[i];
+
+      console.log('i:', i);
+      console.log('transaction.from:', transaction.from);
+
+      await this.transactionsRepository.update(
+        { address: transaction.from.toLowerCase() },
+        { timestamp: transaction.timeStamp * 1000, isStaked: true }
+      );
+    }
+
+    // const promiseUpdateStakeTimeStamp = stakeFunctionFilter.map((transaction) =>
+    //   this.transactionsRepository.update(
+    //     { address: transaction.from },
+    //     { timestamp: transaction.timeStamp * 1000, isStaked: true }
+    //   )
+    // );
+
+    // await Promise.all(promiseUpdateStakeTimeStamp);
+
+    // Update last block
+    if (!lastBlock?.value) {
+      await this.configService.create({
+        name: 'last_stake_block',
+        value: stakeNFTTransactions.data.result[0].blockNumber,
+        key: process.env.KEY_INIT,
+      });
+    }
+
+    if (lastBlock?.value && stakeNFTTransactions.data.result.length > 0) {
+      await this.configService.update(
+        'last_stake_block',
+        +stakeNFTTransactions.data.result[0].blockNumber + 1 + ''
+      );
+    }
+
+    return stakeFunctionFilter;
+  }
+
   async fetchTrans() {
     const lastBlock = await this.configService.findOne(CONFIG.LAST_BLOCK);
     const web3 = getWeb3();
@@ -274,8 +349,8 @@ export class TransactionsService {
         const start = startBlock + 5000 * i;
         const end = i == round - 1 ? newBlock : startBlock + 5000 * (i + 1);
 
-        const dataReceive = await this.testCronjobA(start, end, 'Receive');
-        const dataBuy = await this.testCronjobA(start, end);
+        const dataReceive = await this.transactionJob(start, end, 'Receive');
+        const dataBuy = await this.transactionJob(start, end);
 
         finalData = [...finalData, ...dataReceive, ...dataBuy];
       }
@@ -283,10 +358,6 @@ export class TransactionsService {
       for (const item of finalData) {
         await this.createTransaction(item);
       }
-
-      // if (finalData?.length) {
-      //   await this.configService.update(CONFIG.LAST_BLOCK, `${newBlock + 1}`);
-      // }
 
       return { length: finalData.length, finalData };
     } catch (e) {
@@ -413,7 +484,8 @@ export class TransactionsService {
         const endOfDay = startOfDay + 86399;
 
         const dayTransaction = monthTransactions.filter(
-          (transaction) => transaction.timestamp / 1000 <= endOfDay
+          (transaction) =>
+            transaction.timestamp / 1000 <= endOfDay && transaction.isStaked
         );
 
         return { time: startOfDay * 1000, value: dayTransaction.length };

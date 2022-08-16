@@ -49,6 +49,14 @@ export const toWei = (number: number): string => {
   }
 };
 
+export const fromWei = (number: number | string): string => {
+  try {
+    return Web3.utils.fromWei(number + '');
+  } catch (e) {
+    console.log('e:', e);
+  }
+};
+
 export const getMulticallContract = () => {
   const MulticallAddress = MULTICALL_ADDRESS[97];
   const web3 = getWeb3();

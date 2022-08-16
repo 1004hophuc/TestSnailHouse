@@ -62,4 +62,9 @@ export class ProfitController {
     const lowercaseAddress = user.toLowerCase();
     return this.profitService.profitsTotalType(lowercaseAddress);
   }
+
+  @Get('initIDO')
+  initIdo() {
+    return this.profitService.initIDOData();
+  }
 }

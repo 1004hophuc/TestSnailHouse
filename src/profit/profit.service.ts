@@ -335,21 +335,25 @@ export class ProfitService {
     // Create new record following of timeSendReward everyday
     const { start } = getDateInterval(timeSendReward * 1000);
 
+    const existProfit = await this.profitSwapService.findOne({
+      dateSendReward: start * 1000,
+    });
+
     const profitSwapSent = {
       totalDaoUser,
       dateSendReward: start * 1000,
       swapProfit: profit,
     };
-    const profitSwap = await this.profitSwapService.findOne({
-      dateSendReward: start * 1000,
-    });
 
-    if (!profitSwap) {
+    if (!existProfit) {
       await this.profitSwapService.create(profitSwapSent);
       return;
     }
 
-    await this.profitSwapService.update(profitSwap.id, profitSwapSent);
+    await this.profitSwapService.update(existProfit.id, {
+      ...profitSwapSent,
+      swapProfit: existProfit.swapProfit + profit,
+    });
   }
 
   async calculateMarketProfit(marketReward: number, timeSendReward: number) {
@@ -364,21 +368,25 @@ export class ProfitService {
     // Create new record following of timeSendReward everyday
     const { start } = getDateInterval(timeSendReward * 1000);
 
+    const existProfitMarket = await this.profitMarketService.findOne({
+      dateSendReward: start * 1000,
+    });
+
     const profitMarketSent = {
       totalDaoUser,
       dateSendReward: start * 1000,
       marketProfit: profit,
     };
-    const profitMarket = await this.profitMarketService.findOne({
-      dateSendReward: start * 1000,
-    });
 
-    if (!profitMarket) {
+    if (!existProfitMarket) {
       await this.profitMarketService.create(profitMarketSent);
       return;
     }
 
-    await this.profitMarketService.update(profitMarket.id, profitMarketSent);
+    await this.profitMarketService.update(existProfitMarket.id, {
+      ...profitMarketSent,
+      marketProfit: existProfitMarket.marketProfit + profit,
+    });
   }
 
   async userProfitHistory(query: UserProfitDto) {
@@ -417,8 +425,11 @@ export class ProfitService {
 
     if (!latestReward) return { latestReward, todayReward, daoDividents };
 
-    const { dexProfit } = await this.findOne({ user, type });
+    const profitData = await this.findOne({ user, type });
 
+    if (!profitData) return { latestReward, todayReward, daoDividents };
+
+    const { dexProfit } = profitData;
     // If the latestReward is this day, so user's todayReward is the latestReward profit
     if (
       latestReward.dateSendReward === start * 1000 &&
@@ -427,13 +438,10 @@ export class ProfitService {
       todayReward = latestReward[REWARD_KEY_TYPE[type]] || 0;
     } else {
       todayReward = todayProfit;
-      daoDividents = profitSentRewards.reduce((accu, reward: ProfitSent) => {
-        if (accu === dexProfit) return accu;
-        return (accu += bigNumMul(
-          reward[REWARD_KEY_TYPE[type]],
-          reward.totalDaoUser
-        ));
-      }, 0);
+      daoDividents =
+        (latestReward[REWARD_KEY_TYPE[type]] *
+          latestReward[REWARD_KEY_PERCENT_TYPE[type]]) /
+        100;
     }
 
     if (AUTO_PROFIT_TYPE[type]) {
@@ -483,10 +491,40 @@ export class ProfitService {
         0
       );
 
+      const { level } = await this.transactionService.findOne({
+        address: user,
+      });
+
+      const amountPerUser = {
+        [PROFIT_TYPE.SWAP]: {
+          1: 0.5684832007,
+          2: 1.705449602,
+          3: 2.842416004,
+          4: 5.684832007,
+          5: 11.36966401,
+        },
+
+        [PROFIT_TYPE.MARKET]: {
+          1: 0.02643324364,
+          2: 0.07929973091,
+          3: 0.1321662182,
+          4: 0.2643324364,
+          5: 0.5286648727,
+        },
+
+        [PROFIT_TYPE.IDO]: {
+          1: 1.40456784,
+          2: 4.213703521,
+          3: 7.022839202,
+          4: 14.0456784,
+          5: 28.09135681,
+        },
+      };
+
       const data = {
         daoProfit: userProfit.dexProfit,
         daoDividents,
-        profitPerUser: userProfit.amountProfit,
+        profitPerUser: amountPerUser[type][level], // userProfit.amountProfit,
         totalUserProfit: userProfit.amountProfit,
         totalWithdraw: totalUserWithdrawed,
         withdrawAvailable,
@@ -709,5 +747,93 @@ export class ProfitService {
       })
       .filter((dayValue) => dayValue.time < currentTime);
     return profitFromMonth;
+  }
+
+  async initIDOData() {
+    const profits = await this.profitRepo.find({ type: PROFIT_TYPE.IDO });
+
+    const users = await this.transactionService.findAllFilter({
+      where: {
+        timestamp: { $lt: 1660521600000 },
+        isStaked: true,
+      },
+    });
+
+    const swap = {
+      1: 0.5684832007,
+      2: 1.705449602,
+      3: 2.842416004,
+      4: 5.684832007,
+      5: 11.36966401,
+    };
+
+    const market = {
+      1: 0.02643324364,
+      2: 0.07929973091,
+      3: 0.1321662182,
+      4: 0.2643324364,
+      5: 0.5286648727,
+    };
+
+    const ido = {
+      1: 1.40456784,
+      2: 4.213703521,
+      3: 7.022839202,
+      4: 14.0456784,
+      5: 28.09135681,
+    };
+
+    const resetData = {
+      amountProfit: 0,
+      weiAmountProfit: '0',
+      dexProfit: 0,
+    };
+
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      const { level, address } = user;
+
+      await Promise.all([
+        this.profitRepo.update(
+          { user: address, type: PROFIT_TYPE.IDO },
+          {
+            amountProfit: ido[level],
+            weiAmountProfit: toWei(ido[level]),
+            dexProfit: 5346.4,
+          }
+        ),
+        this.profitRepo.update(
+          { user: address, type: PROFIT_TYPE.SWAP },
+          {
+            amountProfit: swap[level],
+            weiAmountProfit: toWei(swap[level]),
+            dexProfit: 21352.22902,
+          }
+        ),
+        this.profitRepo.update(
+          { user: address, type: PROFIT_TYPE.MARKET },
+          {
+            amountProfit: market[level],
+            weiAmountProfit: toWei(market[level]),
+            dexProfit: 141.833233,
+          }
+        ),
+      ]);
+    }
+  }
+
+  async resetMarket(type: PROFIT_TYPE) {
+    const allMarketProfits = await this.profitRepo.find({
+      type,
+    });
+
+    const promiseArr = allMarketProfits.map((profit) =>
+      this.profitRepo.update(
+        { user: profit.user, type },
+        { amountProfit: 0, weiAmountProfit: '0', dexProfit: 0 }
+      )
+    );
+
+    await Promise.all(promiseArr);
   }
 }

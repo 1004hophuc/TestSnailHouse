@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { getWeb3 } from 'src/utils/web3';
+import { fromWei, getWeb3 } from 'src/utils/web3';
 import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transaction.dto';
 import { UpdateDaoElementTransactionDto } from './dto/update-dao-element-transaction.dto';
 import { Abi as launchpadNFTAbi } from '../contract/LaunchPadNFT';
@@ -34,7 +34,7 @@ export class DaoElementTransactionService {
     return 'This action adds a new daoElementTransaction';
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async getDAOElementTransactionJob() {
     try {
       console.log('Start DAO element transaction job ');
@@ -46,7 +46,7 @@ export class DaoElementTransactionService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  // @Cron(CronExpression.EVERY_5_MINUTES)
   async fetchRouter() {
     try {
       await this.getRouterTransaction();
@@ -58,9 +58,9 @@ export class DaoElementTransactionService {
   }
 
   async deleteRouterTransaction() {
-    // await this.daoElementTransactionReposity.delete({
-    //   type: ElementType.MARKET,
-    // });
+    await this.daoElementTransactionReposity.delete({
+      type: ElementType.MARKET,
+    });
     await this.daoElementTransactionReposity.delete({
       type: ElementType.ROUTER,
     });
@@ -139,10 +139,7 @@ export class DaoElementTransactionService {
       const web3 = getWeb3();
       const marketContractAddress = process.env.MARKET_CONTRACT;
       const busdAddress = process.env.BUSD_TOKEN.toLowerCase();
-      const marketContract = new web3.eth.Contract(
-        marketAbi as any,
-        marketContractAddress
-      );
+
       const latestMarketTransaction =
         await this.daoElementTransactionReposity.find({
           where: { type: ElementType.MARKET },
@@ -160,15 +157,14 @@ export class DaoElementTransactionService {
         },
       });
 
-      // return allTransactions.data;
-
-      abiDecoder.addABI(marketAbi);
-
       const marketTransactions = allTransactions.data.result.filter(
-        (transaction) => transaction.functionName === 'accept(uint256 tokenId)'
+        (transaction) =>
+          transaction.functionName === 'accept(uint256 acceptNonce)' &&
+          transaction.isError == 0
       );
 
       latestMarketTransaction.length && marketTransactions.shift();
+      const corkPrice = await this.corkPriceToBUSD();
 
       for (let i = 0; i < marketTransactions.length; i++) {
         const transaction = marketTransactions[i];
@@ -188,32 +184,36 @@ export class DaoElementTransactionService {
           to_address: transaction.to,
         };
 
-        const corkPrice = await this.corkPriceToBUSD();
+        let totalValue = 0;
 
-        for (let j = 0; j < values.length; j++) {
-          const value = values[j];
-          let corkValue = value.total;
+        const value = values[0];
 
-          if (value.unit_token_address.toLowerCase() === busdAddress) {
-            corkValue = await this.tokenPriceInCork(
-              web3.utils.toWei(value.total + ''),
-              corkPrice
-            );
-          }
+        if (values.length === 3) totalValue = value.total;
 
-          await this.profitService.calculateMarketProfit(
-            +corkValue,
-            insertData.timestamp
+        if (values.length === 2) totalValue = values[0].total + values[1].total;
+
+        // 1% of total accept offer value
+        const profitDev = (totalValue * 1) / 100;
+        let corkValue = profitDev;
+        if (value.unit_token_address.toLowerCase() === busdAddress) {
+          corkValue = await this.tokenPriceInCork(
+            web3.utils.toWei(profitDev + ''),
+            corkPrice
           );
-
-          await this.daoElementTransactionReposity.insert({
-            ...insertData,
-            value: value.total,
-            unit_token_address: value.unit_token_address,
-            unit_token_name: value.unit_token_name,
-            corkValue: +corkValue,
-          });
         }
+
+        await this.profitService.calculateMarketProfit(
+          +corkValue,
+          insertData.timestamp
+        );
+
+        await this.daoElementTransactionReposity.insert({
+          ...insertData,
+          value: totalValue,
+          unit_token_address: value.unit_token_address,
+          unit_token_name: value.unit_token_name,
+          corkValue: +corkValue,
+        });
       }
 
       console.log('DONE MARKET JOB !');
@@ -319,7 +319,6 @@ export class DaoElementTransactionService {
 
   async getTotalValueFromTxReceipt(transaction) {
     try {
-      const decimal = 10 ** 18;
       const ownerAddress = process.env.OWNER_ADDRESS;
       const transferTransaction = process.env.TRANSFER_TRANSACTION;
       const busdAddress = process.env.BUSD_TOKEN;
@@ -334,11 +333,13 @@ export class DaoElementTransactionService {
         const topics = log.topics;
 
         const parsedTopics = await this.parseLogTopic(topics);
-
+        let i = 0;
         if (
           parsedTopics.indexOf(ownerAddress.toLowerCase()) !== '-1' &&
           topics.indexOf(transferTransaction) !== -1
         ) {
+          i++;
+
           let decodeData;
           try {
             decodeData = await web3.eth.abi.decodeParameter(
@@ -348,7 +349,9 @@ export class DaoElementTransactionService {
           } catch (error) {
             return;
           }
-          totalValue += +decodeData / decimal;
+
+          // 1 percent of total Accept Offer Price
+          totalValue += +fromWei(decodeData);
 
           if (log) {
             result.push({
