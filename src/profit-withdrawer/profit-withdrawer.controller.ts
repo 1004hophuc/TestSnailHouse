@@ -48,6 +48,11 @@ export class ProfitWithdrawerController {
     return this.profitWithdrawerService.findAll(account.toLowerCase(), type);
   }
 
+  @Get('fetch')
+  fetch() {
+    return this.profitWithdrawerService.fetchWithdrawer();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.profitWithdrawerService.findOne(+id);

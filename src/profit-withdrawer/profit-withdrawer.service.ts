@@ -8,12 +8,16 @@ import {
 import { UpdateProfitWithdrawerDto } from './dto/update-profit-withdrawer.dto';
 import { Repository } from 'typeorm';
 import { ProfitService } from 'src/profit/profit.service';
-import { getWeb3, toWei } from 'src/utils/web3';
+import { fromWei, getWeb3, toWei } from 'src/utils/web3';
 import { TransactionsService } from 'src/transactions/transactions.service';
 import { Abi as RewardsABI } from 'src/contract/Rewards';
 import Web3 from 'web3';
 import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
 import { Abi as NFTAbi } from 'src/contract/NFT';
+import axios from 'axios';
+import abiDecoder from 'abi-decoder';
+
+abiDecoder.addABI(RewardsABI);
 
 @Injectable()
 export class ProfitWithdrawerService {
@@ -45,6 +49,54 @@ export class ProfitWithdrawerService {
     //update profit User Withdraw status
     // this.profitService.updateUserWithdraw(account, type);
     return profitWithdrawSave;
+  }
+
+  async fetchWithdrawer() {
+    const withDrawTransactions = await axios.get(process.env.DOMAIN_BSC, {
+      params: {
+        address: process.env.CONTRACT_REWARDS,
+        apikey: process.env.BSC_API_KEY,
+        action: 'txlist',
+        module: 'account',
+        sort: 'desc',
+        startblock: 0,
+      },
+    });
+
+    const filterWithdraw = withDrawTransactions.data.result.filter(
+      (transaction) =>
+        transaction.functionName.includes('transferPermit') &&
+        transaction.isError == 0
+    );
+
+    for (let i = 0; i < filterWithdraw.length; i++) {
+      const transaction = filterWithdraw[i];
+
+      const existWithdraw = await this.profitWithdrawerRepo.findOne({
+        txHash: transaction.hash,
+      });
+
+      if (!existWithdraw) {
+        const { params } = abiDecoder.decodeMethod(transaction.input);
+        const amountWei = params[0].value;
+        await this.create({
+          account: transaction.from,
+          amountWithdraw: +fromWei(amountWei),
+          amountWeiWithdraw: amountWei,
+          dateWithdraw: transaction.timeStamp,
+          type: PROFIT_TYPE.IDO,
+          txHash: transaction.hash,
+          status: WithdrawStatus.PENDING,
+        });
+      }
+
+      await this.profitWithdrawerRepo.update(
+        { txHash: transaction.hash },
+        { status: WithdrawStatus.FINISH }
+      );
+    }
+
+    return withDrawTransactions.data;
   }
 
   async updateWithdrawStatus(updateStatusDto: UpdateProfitWithdrawerDto) {

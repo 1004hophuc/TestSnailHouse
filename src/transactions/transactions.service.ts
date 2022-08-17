@@ -281,7 +281,7 @@ export class TransactionsService {
         action: 'txlist',
         module: 'account',
         sort: 'desc',
-        startblock: 0,
+        startblock: lastBlock?.value || 0,
       },
     });
 
@@ -296,23 +296,11 @@ export class TransactionsService {
     for (let i = 0; i < stakeFunctionFilter.length; i++) {
       const transaction = stakeFunctionFilter[i];
 
-      console.log('i:', i);
-      console.log('transaction.from:', transaction.from);
-
       await this.transactionsRepository.update(
         { address: transaction.from.toLowerCase() },
         { timestamp: transaction.timeStamp * 1000, isStaked: true }
       );
     }
-
-    // const promiseUpdateStakeTimeStamp = stakeFunctionFilter.map((transaction) =>
-    //   this.transactionsRepository.update(
-    //     { address: transaction.from },
-    //     { timestamp: transaction.timeStamp * 1000, isStaked: true }
-    //   )
-    // );
-
-    // await Promise.all(promiseUpdateStakeTimeStamp);
 
     // Update last block
     if (!lastBlock?.value) {
