@@ -4,6 +4,9 @@ import { Column, Entity } from 'typeorm';
 @Entity('profit-sent')
 export class ProfitSent extends AbstractEntity {
   @Column()
+  daoUntilTime: number;
+
+  @Column()
   totalDaoUser: number;
 
   @Column()
@@ -20,6 +23,12 @@ export class ProfitSent extends AbstractEntity {
 
   @Column()
   nftGameProfit: number;
+
+  @Column()
+  swapProfit: number;
+
+  @Column()
+  marketProfit: number;
 
   @Column()
   idoPercent: number;

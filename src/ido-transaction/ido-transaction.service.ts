@@ -63,15 +63,6 @@ export class IDOTransactionsService {
     }
   }
 
-  async getByStaked(isStaked) {
-    try {
-      const res = await this.idoTransactionsRepository.find({});
-      return res;
-    } catch (error) {
-      return error;
-    }
-  }
-
   async getOne(address: string) {
     const transaction = await this.idoTransactionsRepository.findOne({
       address,

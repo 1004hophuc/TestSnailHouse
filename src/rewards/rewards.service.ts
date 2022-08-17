@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { TransactionsService } from 'src/transactions/transactions.service';
 import { Repository } from 'typeorm';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
@@ -8,7 +9,8 @@ import { Reward } from './entities/reward.entity';
 @Injectable()
 export class RewardsService {
   constructor(
-    @InjectRepository(Reward) private rewardRepo: Repository<Reward>
+    @InjectRepository(Reward) private rewardRepo: Repository<Reward>,
+    private readonly transactionService: TransactionsService
   ) {}
 
   public async create(createRewardDto: CreateRewardDto): Promise<Reward> {
@@ -18,6 +20,7 @@ export class RewardsService {
       const reward = await this.rewardRepo.save(item);
       return reward;
     } catch (error) {
+      console.log('error', error);
       return error;
     }
   }
@@ -28,7 +31,23 @@ export class RewardsService {
         skip: (page - 1) * limit,
         take: limit,
       });
-      return { data, total };
+
+      const mappingData = [];
+
+      for (let i = 0; i < data.length; i++) {
+        const reward = Object.assign(data[i]);
+
+        const totalDaoUserUntilTime =
+          await this.transactionService.findAllFilter({
+            isStaked: true,
+            timestamp: { $lte: reward.daoUntilTime },
+          });
+
+        reward.totalDaoUser = totalDaoUserUntilTime.length;
+        mappingData.push(reward);
+      }
+
+      return { data: mappingData, total };
     } catch (error) {
       return error;
     }

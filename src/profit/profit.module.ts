@@ -9,6 +9,7 @@ import { ProfitSentModule } from 'src/profit-sent/profit-sent.module';
 import { ProfitWithdrawerModule } from 'src/profit-withdrawer/profit-withdrawer.module';
 import { ProfitSwapSentModule } from 'src/profit-swap-sent/profit-swap-sent.module';
 import { ProfitMarketSentModule } from 'src/profit-market-sent/profit-market-sent.module';
+import { DaoElementTransactionModule } from 'src/dao-element-transaction/dao-element-transaction.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProfitMarketSentModule } from 'src/profit-market-sent/profit-market-sen
     forwardRef(() => ProfitWithdrawerModule),
     ProfitSwapSentModule,
     ProfitMarketSentModule,
+    forwardRef(() => DaoElementTransactionModule),
     TypeOrmModule.forFeature([Profit]),
   ],
   controllers: [ProfitController],

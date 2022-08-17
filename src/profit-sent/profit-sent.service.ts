@@ -19,13 +19,18 @@ export class ProfitSentService {
     return saveProfit;
   }
 
-  async findLastRewards(type: PROFIT_TYPE) {
+  async findLastReward() {
+    const [lastReward] = await this.profitSentRepo.find({
+      order: { dateSendReward: 'DESC' },
+    });
+    return lastReward;
+  }
+
+  async findTodayProfitWithType(type: PROFIT_TYPE) {
     const { start, end } = getDateInterval(new Date());
 
-    const [profitSentRewards, todayProfitSent] = await Promise.all([
-      this.profitSentRepo.find({
-        order: { dateSendReward: 'DESC' },
-      }),
+    const [lastRecord, todayProfitSent] = await Promise.all([
+      this.findLastReward(),
       this.profitSentRepo.find({
         where: {
           dateSendReward: {
@@ -41,9 +46,7 @@ export class ProfitSentService {
       0
     );
 
-    const [lastRecord] = profitSentRewards;
-
-    return [lastRecord, todayProfit, profitSentRewards];
+    return [lastRecord, todayProfit];
   }
 
   async findProfitToEndDay(endTime: number) {

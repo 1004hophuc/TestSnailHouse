@@ -22,11 +22,11 @@ import axios from 'axios';
 import { Abi as NFTAbi } from '../contract/NFT';
 import { getMonthTimeRange } from '../utils/helper';
 import { UtilitiesService } from '../utils/sleep-service';
-import { getCurrentTime } from 'src/utils';
+import { get12Decimals, getCurrentTime } from 'src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
-
+const DAO_TIER = [1, 2, 3, 4, 5];
 interface QueryTransMarket {
   isMarket?: boolean;
   address?: string;
@@ -129,15 +129,48 @@ export class TransactionsService {
     return { data, count };
   }
 
+  async findDaoPercentPerTier(untilTime: number) {
+    // Get all dao tier from 1 -> 5
+    const daoPerTier = await Promise.all(
+      DAO_TIER.map((level) =>
+        this.findAllFilter({
+          isStaked: true,
+          level,
+          timestamp: { $lte: untilTime },
+        })
+      )
+    );
+
+    const pointPerTier = daoPerTier.map(
+      (totalDaoPerTierList, index) => totalDaoPerTierList.length * (index + 1)
+    );
+
+    const totalPoint = pointPerTier.reduce(
+      (total, point) => (total += point),
+      0
+    );
+
+    const percentPerMember = pointPerTier.reduce(
+      (daoTierObj, point, index) => ({
+        ...daoTierObj,
+        [DAO_TIER[index]]:
+          // Dao point divide by totalPoint to get percent per tier
+          // Percent per tier divide by dao member per tier
+          point / totalPoint / (daoPerTier[index].length || 1),
+      }),
+      {}
+    );
+
+    return percentPerMember;
+  }
+
   async findAllFilter(query) {
     const transaction = await this.transactionsRepository.find(query);
-
     return transaction;
   }
 
   async findOne(query) {
     const transaction = await this.transactionsRepository.findOne(query);
-
     return transaction;
   }
 
@@ -328,7 +361,7 @@ export class TransactionsService {
     let finalData = [];
 
     const newBlock = await web3.eth.getBlockNumber();
-    const startBlock = +lastBlock?.value || 17649507; //lastBlock;
+    const startBlock = +lastBlock?.value || 18858850; //lastBlock;
 
     const round = Math.ceil((newBlock - startBlock) / 5000);
 

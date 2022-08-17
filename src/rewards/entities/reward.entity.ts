@@ -4,6 +4,9 @@ import { Column, Entity } from 'typeorm';
 @Entity('rewards')
 export class Reward extends AbstractEntity {
   @Column()
+  daoUntilTime: number;
+
+  @Column()
   idoReward: number;
 
   @Column()

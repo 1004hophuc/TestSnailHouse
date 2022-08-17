@@ -3,11 +3,8 @@ import moment from 'moment';
 
 export const getCurrentTime = () => new Date().getTime();
 
-export const profitDao = (
-  reward: number,
-  percent: number,
-  members: number
-): number => get12Decimals((reward * (percent / 100)) / members);
+export const profitDao = (reward: number, percent: number): number =>
+  get12Decimals(reward * (percent / 100));
 
 export const get12Decimals = (number: number): number =>
   Math.floor(number * 1e12) / 1e12;
@@ -27,4 +24,5 @@ export function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export const bigNumMul = (num1: number, num2: number): number => +(new BigNumber(num1).multipliedBy(num2).toString())
+export const bigNumMul = (num1: number, num2: number): number =>
+  +new BigNumber(num1).multipliedBy(num2).toString();

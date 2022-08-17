@@ -13,7 +13,7 @@ export class CreateRewardDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
-  @Max(getCurrentTime())
+  // @Max(getCurrentTime())
   daoUntilTime: number; // from this time back to previous, get all the DAO User available to calculate
 
   @IsNotEmpty()

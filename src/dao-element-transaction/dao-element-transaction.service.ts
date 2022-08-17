@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { fromWei, getWeb3 } from 'src/utils/web3';
 import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transaction.dto';
@@ -21,17 +21,45 @@ import BigNumber from 'bignumber.js';
 import { Console } from 'console';
 import { getMonthTimeRange } from 'src/utils/helper';
 import { ProfitService } from 'src/profit/profit.service';
+import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
 
 @Injectable()
 export class DaoElementTransactionService {
   constructor(
     @InjectRepository(DaoElementTransaction)
     private daoElementTransactionReposity: Repository<DaoElementTransaction>,
+    @Inject(forwardRef(() => ProfitService))
     private readonly profitService: ProfitService
   ) {}
 
   create(createDaoElementTransactionDto: CreateDaoElementTransactionDto) {
     return 'This action adds a new daoElementTransaction';
+  }
+
+  async findAll(query) {
+    const cronTransactions = await this.daoElementTransactionReposity.find(
+      query
+    );
+    return cronTransactions;
+  }
+
+  async totalCorkValueWithType(
+    type: any,
+    lastTimeSendReward: number // time must be in second
+  ): Promise<number> {
+    const cronTransactions = await this.daoElementTransactionReposity.find({
+      where: {
+        type,
+        timestamp: { $gt: lastTimeSendReward },
+      },
+    });
+
+    const totalCorkValue = cronTransactions.reduce(
+      (total, transaction) => (total += transaction.corkValue),
+      0
+    );
+
+    return totalCorkValue;
   }
 
   // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -202,10 +230,10 @@ export class DaoElementTransactionService {
           );
         }
 
-        await this.profitService.calculateMarketProfit(
-          +corkValue,
-          insertData.timestamp
-        );
+        // await this.profitService.calculateMarketProfit(
+        //   +corkValue,
+        //   insertData.timestamp
+        // );
 
         await this.daoElementTransactionReposity.insert({
           ...insertData,
@@ -284,10 +312,10 @@ export class DaoElementTransactionService {
           if (value.unit_token_address.toLowerCase() === adoBusd)
             corkValue = await this.getLpPriceInCork(adoBusd);
 
-          await this.profitService.calculateSwapProfit(
-            +corkValue,
-            insertData.timestamp
-          );
+          // await this.profitService.calculateSwapProfit(
+          //   +corkValue,
+          //   insertData.timestamp
+          // );
 
           await this.daoElementTransactionReposity.insert({
             ...insertData,
