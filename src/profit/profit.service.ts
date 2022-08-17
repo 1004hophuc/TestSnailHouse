@@ -1,23 +1,18 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DaoElementTransactionService } from 'src/dao-element-transaction/dao-element-transaction.service';
+import { ProfitMarketSentService } from 'src/profit-market-sent/profit-market-sent.service';
+import { ProfitSentService } from 'src/profit-sent/profit-sent.service';
+import { ProfitSwapSentService } from 'src/profit-swap-sent/profit-swap-sent.service';
+import { ProfitWithdrawerService } from 'src/profit-withdrawer/profit-withdrawer.service';
 import { RewardsService } from 'src/rewards/rewards.service';
 import { TransactionsService } from 'src/transactions/transactions.service';
-import { Repository } from 'typeorm';
-import { Profit, PROFIT_TYPE } from './entities/profit.entity';
-import { UserProfitDto } from './dto/user-profit.dto';
+import { getCurrentTime, profitDao } from 'src/utils';
+import { getDateInterval, getMonthTimeRange } from 'src/utils/helper';
 import { toWei } from 'src/utils/web3';
-import { bigNumMul, getCurrentTime, profitDao } from 'src/utils';
-import { ProfitSentService } from 'src/profit-sent/profit-sent.service';
-import { ProfitWithdrawerService } from 'src/profit-withdrawer/profit-withdrawer.service';
-import { ProfitSwapSentService } from 'src/profit-swap-sent/profit-swap-sent.service';
-import {
-  getCurrentInSecond,
-  getDateInterval,
-  getMonthTimeRange,
-} from 'src/utils/helper';
-import { ProfitMarketSentService } from 'src/profit-market-sent/profit-market-sent.service';
-import { ProfitSent } from 'src/profit-sent/entities/profit-sent.entity';
-import { DaoElementTransactionService } from 'src/dao-element-transaction/dao-element-transaction.service';
+import { Repository } from 'typeorm';
+import { UserProfitDto } from './dto/user-profit.dto';
+import { Profit, PROFIT_TYPE } from './entities/profit.entity';
 
 const TOTAL_REWARD_FIELD = 6;
 const DAO_PROFIT_PERCENT = 70;

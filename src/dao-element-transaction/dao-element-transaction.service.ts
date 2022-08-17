@@ -1,27 +1,19 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { fromWei, getWeb3 } from 'src/utils/web3';
-import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transaction.dto';
-import { UpdateDaoElementTransactionDto } from './dto/update-dao-element-transaction.dto';
-import { Abi as launchpadNFTAbi } from '../contract/LaunchPadNFT';
-import { Abi as marketAbi } from '../contract/Market';
-import { Abi as priceGetterABI } from '../contract/PriceGetter';
+import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
-import abiDecoder from 'abi-decoder';
+import BigNumber from 'bignumber.js';
 import Promise from 'bluebird';
-import config from '../config/index';
+import { ProfitService } from 'src/profit/profit.service';
+import { getMonthTimeRange } from 'src/utils/helper';
+import { fromWei, getWeb3 } from 'src/utils/web3';
+import { Repository } from 'typeorm';
+import { Abi as priceGetterABI } from '../contract/PriceGetter';
+import { CreateDaoElementTransactionDto } from './dto/create-dao-element-transaction.dto';
 import {
   DaoElementTransaction,
   ElementType,
   UnitToken,
 } from './entities/dao-element-transaction.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import BigNumber from 'bignumber.js';
-import { Console } from 'console';
-import { getMonthTimeRange } from 'src/utils/helper';
-import { ProfitService } from 'src/profit/profit.service';
-import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
 
 @Injectable()
 export class DaoElementTransactionService {

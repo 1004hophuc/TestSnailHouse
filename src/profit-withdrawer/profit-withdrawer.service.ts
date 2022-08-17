@@ -1,21 +1,20 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfitWithdrawer } from './entities/profit-withdrawer.entity';
+import abiDecoder from 'abi-decoder';
+import axios from 'axios';
+import { Abi as RewardsABI } from 'src/contract/Rewards';
+import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
+import { ProfitService } from 'src/profit/profit.service';
+import { TransactionsService } from 'src/transactions/transactions.service';
+import { fromWei, getWeb3, toWei } from 'src/utils/web3';
+import { Repository } from 'typeorm';
+import Web3 from 'web3';
 import {
   CreateProfitWithdrawerDto,
   WithdrawStatus,
 } from './dto/create-profit-withdrawer.dto';
 import { UpdateProfitWithdrawerDto } from './dto/update-profit-withdrawer.dto';
-import { Repository } from 'typeorm';
-import { ProfitService } from 'src/profit/profit.service';
-import { fromWei, getWeb3, toWei } from 'src/utils/web3';
-import { TransactionsService } from 'src/transactions/transactions.service';
-import { Abi as RewardsABI } from 'src/contract/Rewards';
-import Web3 from 'web3';
-import { PROFIT_TYPE } from 'src/profit/entities/profit.entity';
-import { Abi as NFTAbi } from 'src/contract/NFT';
-import axios from 'axios';
-import abiDecoder from 'abi-decoder';
+import { ProfitWithdrawer } from './entities/profit-withdrawer.entity';
 
 abiDecoder.addABI(RewardsABI);
 
