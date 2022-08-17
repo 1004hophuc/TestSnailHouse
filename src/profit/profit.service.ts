@@ -24,6 +24,15 @@ const AUTO_PROFIT_TYPE = {
   [PROFIT_TYPE.MARKET]: DAO_PROFIT_PERCENT,
 };
 
+const TYPE_LIST = {
+  [PROFIT_TYPE.SWAP]: 'swap',
+  [PROFIT_TYPE.MARKET]: 'market',
+  [PROFIT_TYPE.IDO]: 'ido',
+  [PROFIT_TYPE.NFTLAUNCHPAD]: 'nftLaunchpad',
+  [PROFIT_TYPE.NFTGAME]: 'nftGame',
+  [PROFIT_TYPE.SEEDINVEST]: 'seedInvest',
+};
+
 export const REWARD_KEY_TYPE = {
   [PROFIT_TYPE.SWAP]: 'swapProfit',
   [PROFIT_TYPE.MARKET]: 'marketProfit',
@@ -100,97 +109,51 @@ export class ProfitService {
         )
       );
 
-      //  Calculate ido, swap, market, nftLaunchpad, nftGame, seedInvest profit.
-      const idoProfit = profitDao(idoReward, idoPercent);
-      const swapProfit = profitDao(
-        swapReward,
-        AUTO_PROFIT_TYPE[PROFIT_TYPE.SWAP]
+      const TYPE_REWARD = {
+        [PROFIT_TYPE.IDO]: idoReward,
+        [PROFIT_TYPE.NFTLAUNCHPAD]: nftLaunchpadReward,
+        [PROFIT_TYPE.NFTGAME]: nftGameReward,
+        [PROFIT_TYPE.SEEDINVEST]: seedInvestReward,
+        [PROFIT_TYPE.SWAP]: swapReward,
+        [PROFIT_TYPE.MARKET]: marketReward,
+      };
+
+      const TYPE_PROFIT = Object.keys(TYPE_LIST).reduce(
+        (accu, type) => ({
+          ...accu,
+          [type]: profitDao(
+            TYPE_REWARD[type],
+            AUTO_PROFIT_TYPE[type] ?? itemReward[REWARD_KEY_PERCENT_TYPE[type]]
+          ),
+        }),
+        {}
       );
-      const marketProfit = profitDao(
-        marketReward,
-        AUTO_PROFIT_TYPE[PROFIT_TYPE.MARKET]
-      );
-      const nftLaunchpadProfit = profitDao(
-        nftLaunchpadReward,
-        nftLaunchpadPercent
-      );
-      const nftGameProfit = profitDao(nftGameReward, nftGamePercent);
-      const seedInvestProfit = profitDao(seedInvestReward, seedInvestPercent);
 
       let newUserList = [];
 
       for (let i = 0; i < userDaoList.length; i++) {
         const { address, level } = userDaoList[i];
 
-        const idoProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * idoProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * idoProfit),
-          type: PROFIT_TYPE.IDO,
-          dexProfit: idoReward,
-        };
+        const TYPE_DATA = Object.keys(TYPE_PROFIT).reduce(
+          (temp, type) => ({
+            ...temp,
+            [type]: {
+              user: address,
+              amountProfit: daoPerTier[level] * TYPE_PROFIT[type],
+              weiAmountProfit: toWei(daoPerTier[level] * TYPE_PROFIT[type]),
+              type,
+              dexProfit: TYPE_REWARD[type],
+            },
+          }),
+          {}
+        );
 
-        const nftLaunchpadProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * nftLaunchpadProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * nftLaunchpadProfit),
-          type: PROFIT_TYPE.NFTLAUNCHPAD,
-          dexProfit: nftLaunchpadReward,
-        };
-
-        const nftGameProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * nftGameProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * nftGameProfit),
-          type: PROFIT_TYPE.NFTGAME,
-          dexProfit: nftGameReward,
-        };
-
-        const seedInvestProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * seedInvestProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * seedInvestProfit),
-          type: PROFIT_TYPE.SEEDINVEST,
-          dexProfit: seedInvestReward,
-        };
-
-        const swapProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * swapProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * swapProfit),
-          type: PROFIT_TYPE.SWAP,
-          dexProfit: swapReward,
-        };
-
-        const marketProfitData = {
-          user: address,
-          amountProfit: daoPerTier[level] * marketProfit,
-          weiAmountProfit: toWei(daoPerTier[level] * marketProfit),
-          type: PROFIT_TYPE.MARKET,
-          dexProfit: marketReward,
-        };
-
-        const TYPE_DATA = {
-          [PROFIT_TYPE.IDO]: idoProfitData,
-          [PROFIT_TYPE.NFTLAUNCHPAD]: nftLaunchpadProfitData,
-          [PROFIT_TYPE.NFTGAME]: nftGameProfitData,
-          [PROFIT_TYPE.SEEDINVEST]: seedInvestProfitData,
-          [PROFIT_TYPE.SWAP]: swapProfitData,
-          [PROFIT_TYPE.MARKET]: marketProfitData,
-        };
+        const profitData = Object.values(TYPE_DATA).map((profit) => profit);
 
         const existUsers = await this.profitRepo.find({ user: address });
         if (existUsers.length <= 0) {
           // init data
-          newUserList = [
-            ...newUserList,
-            swapProfitData,
-            marketProfitData,
-            idoProfitData,
-            nftLaunchpadProfitData,
-            nftGameProfitData,
-            seedInvestProfitData,
-          ];
+          newUserList = [...newUserList, ...profitData];
           continue;
         }
 
@@ -444,18 +407,30 @@ export class ProfitService {
   async getRewardByType(user: string, type: PROFIT_TYPE) {
     let latestReward = null;
     let todayProfit = 0;
-    let daoDividents = 0;
+    let daoDividends = 0;
     let todayReward = 0;
     let daoPercent = 0;
 
     const { start, end } = getDateInterval(new Date());
 
+    const userProfit = await this.findOne({ user });
+
+    if (!userProfit)
+      return { latestReward, todayReward, daoDividends, daoPercent };
+
     [latestReward, todayProfit] =
       await this.profitSentService.findTodayProfitWithType(type);
 
     if (!latestReward)
-      return { latestReward, todayReward, daoDividents, daoPercent };
+      return { latestReward, todayReward, daoDividends, daoPercent };
 
+    const { timestamp } = await this.transactionService.findOne({
+      address: user,
+    });
+
+    const userLatestReward = await this.profitSentService.findUserLastReward(
+      timestamp
+    );
     // If the latestReward is this day, so user's todayReward is the latestReward profit
 
     if (
@@ -466,15 +441,21 @@ export class ProfitService {
     }
 
     daoPercent =
-      AUTO_PROFIT_TYPE[type] ?? latestReward[REWARD_KEY_PERCENT_TYPE[type]];
+      AUTO_PROFIT_TYPE[type] ?? userLatestReward[REWARD_KEY_PERCENT_TYPE[type]];
 
-    daoDividents = (latestReward[REWARD_KEY_TYPE[type]] * daoPercent) / 100;
-    return { latestReward, todayReward, daoDividents, daoPercent };
+    daoDividends = (userLatestReward[REWARD_KEY_TYPE[type]] * daoPercent) / 100;
+    return {
+      latestReward,
+      todayReward,
+      daoDividends,
+      daoPercent,
+      userLatestReward,
+    };
   }
 
   async profitUserWithType(user: string, type: PROFIT_TYPE) {
     try {
-      const { latestReward, todayReward, daoDividents, daoPercent } =
+      const { todayReward, daoDividends, daoPercent, userLatestReward } =
         await this.getRewardByType(user, type);
 
       const userProfit = await this.profitRepo.findOne({
@@ -487,13 +468,13 @@ export class ProfitService {
       if (!userProfit) {
         return {
           daoProfit: 0,
-          daoDividents: 0,
+          daoDividends: 0,
           totalDaoUser: 0,
           profitPerUser: 0,
           totalUserProfit: 0,
           totalWithdraw: 0,
           withdrawAvailable: 0,
-          dateReward: latestReward.dateSendReward,
+          dateReward: 0,
           todayReward: 0,
         };
       }
@@ -510,57 +491,55 @@ export class ProfitService {
           address: user,
         }),
         this.transactionService.findDaoPercentPerTier(
-          latestReward.daoUntilTime
+          userLatestReward.daoUntilTime
         ),
       ]);
 
-      const daoProfit = latestReward[REWARD_KEY_TYPE[type]];
-      const daoPercentProfit =
-        AUTO_PROFIT_TYPE[type] ?? latestReward[REWARD_KEY_PERCENT_TYPE[type]];
+      const daoProfit = userLatestReward[REWARD_KEY_TYPE[type]];
 
       const profitPerUser =
-        daoProfit * (daoPercentProfit / 100) * profitPercentPerTier[level];
+        daoProfit * (daoPercent / 100) * profitPercentPerTier[level];
 
-      // const amountPerUser = {
-      //   [PROFIT_TYPE.SWAP]: {
-      //     1: 0.5684832007,
-      //     2: 1.705449602,
-      //     3: 2.842416004,
-      //     4: 5.684832007,
-      //     5: 11.36966401,
-      //   },
+      const amountPerUser = {
+        [PROFIT_TYPE.SWAP]: {
+          1: 0.5684832007,
+          2: 1.705449602,
+          3: 2.842416004,
+          4: 5.684832007,
+          5: 11.36966401,
+        },
 
-      //   [PROFIT_TYPE.MARKET]: {
-      //     1: 0.02643324364,
-      //     2: 0.07929973091,
-      //     3: 0.1321662182,
-      //     4: 0.2643324364,
-      //     5: 0.5286648727,
-      //   },
+        [PROFIT_TYPE.MARKET]: {
+          1: 0.02643324364,
+          2: 0.07929973091,
+          3: 0.1321662182,
+          4: 0.2643324364,
+          5: 0.5286648727,
+        },
 
-      //   [PROFIT_TYPE.IDO]: {
-      //     1: 1.40456784,
-      //     2: 4.213703521,
-      //     3: 7.022839202,
-      //     4: 14.0456784,
-      //     5: 28.09135681,
-      //   },
-      // };
+        [PROFIT_TYPE.IDO]: {
+          1: 1.40456784,
+          2: 4.213703521,
+          3: 7.022839202,
+          4: 14.0456784,
+          5: 28.09135681,
+        },
+      };
 
-      const totalUserWithdrawed = withdrawHistory.reduce(
+      const totalUserWithdrew = withdrawHistory.reduce(
         (accu, history) => (accu += history.amountWithdraw),
         0
       );
 
       const data = {
-        daoProfit: latestReward[REWARD_KEY_TYPE[type]],
-        daoDividents,
+        daoProfit: userLatestReward[REWARD_KEY_TYPE[type]],
+        daoDividends,
         profitPerUser, // amountPerUser[type][level], // userProfit.amountProfit,
         totalUserProfit: userProfit.amountProfit,
-        totalWithdraw: totalUserWithdrawed,
+        totalWithdraw: totalUserWithdrew,
         withdrawAvailable,
-        dateReward: latestReward.dateSendReward,
-        totalDaoUser: latestReward.totalDaoUser,
+        dateReward: userLatestReward.dateSendReward,
+        totalDaoUser: userLatestReward.totalDaoUser,
         todayReward,
       };
 

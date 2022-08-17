@@ -5,7 +5,6 @@ import { REWARD_KEY_TYPE } from 'src/profit/profit.service';
 import { getDateInterval } from 'src/utils/helper';
 import { Repository } from 'typeorm';
 import { CreateProfitSentDto } from './dto/create-profit-sent.dto';
-import { UpdateProfitSentDto } from './dto/update-profit-sent.dto';
 import { ProfitSent } from './entities/profit-sent.entity';
 
 @Injectable()
@@ -23,6 +22,18 @@ export class ProfitSentService {
     const [lastReward] = await this.profitSentRepo.find({
       order: { dateSendReward: 'DESC' },
     });
+    return lastReward;
+  }
+
+  async findUserLastReward(userStakedTime: number) {
+    const rewards = await this.profitSentRepo.find({
+      where: {
+        daoUntilTime: { $gte: userStakedTime },
+      },
+      order: { dateSendReward: 'DESC' },
+    });
+
+    const [lastReward] = rewards;
     return lastReward;
   }
 
