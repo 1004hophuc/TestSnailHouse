@@ -253,7 +253,7 @@ export class TransactionsService {
     try {
       console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
       await this.fetchTrans();
-      await this.fetchStakingTime();
+      // await this.fetchStakingTime();
     } catch (e) {
       console.log('cronTransaction failed: ', e);
     } finally {
@@ -314,7 +314,7 @@ export class TransactionsService {
         action: 'txlist',
         module: 'account',
         sort: 'desc',
-        startblock: lastBlock?.value || 0,
+        startblock: +lastBlock?.value || 0,
       },
     });
 

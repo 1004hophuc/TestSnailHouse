@@ -19,7 +19,7 @@ const DAO_PROFIT_PERCENT = 70;
 const SWAP_PROFIT_PERCENT = 10;
 
 // currently having automatically calculate swap profit & winery marketplace profit
-const AUTO_PROFIT_TYPE = {
+export const AUTO_PROFIT_TYPE = {
   [PROFIT_TYPE.SWAP]: SWAP_PROFIT_PERCENT,
   [PROFIT_TYPE.MARKET]: DAO_PROFIT_PERCENT,
 };
@@ -389,63 +389,45 @@ export class ProfitService {
 
   async userProfitHistory(query: UserProfitDto) {
     const { user, type } = query;
-    try {
-      const profits = await this.profitRepo.find({
-        where: {
-          user,
-          type,
-        },
-        select: ['user', 'type', 'amountProfit', 'weiAmountProfit'],
-      });
 
-      return profits;
-    } catch (error) {
-      return error;
-    }
+    const userProfitSentHistory =
+      await this.profitSentService.findUserProfitSent(type, user);
+
+    return userProfitSentHistory;
   }
 
   async getRewardByType(user: string, type: PROFIT_TYPE) {
-    let latestReward = null;
-    let todayProfit = 0;
+    let userLatestReward = null;
     let daoDividends = 0;
-    let todayReward = 0;
+    let todayReward: any = 0;
     let daoPercent = 0;
-
-    const { start, end } = getDateInterval(new Date());
 
     const userProfit = await this.findOne({ user });
 
     if (!userProfit)
-      return { latestReward, todayReward, daoDividends, daoPercent };
+      return { userLatestReward, todayReward, daoDividends, daoPercent };
 
-    [latestReward, todayProfit] =
-      await this.profitSentService.findTodayProfitWithType(type);
-
-    if (!latestReward)
-      return { latestReward, todayReward, daoDividends, daoPercent };
-
-    const { timestamp } = await this.transactionService.findOne({
+    const userTransaction = await this.transactionService.findOne({
       address: user,
     });
 
-    const userLatestReward = await this.profitSentService.findUserLastReward(
-      timestamp
-    );
-    // If the latestReward is this day, so user's todayReward is the latestReward profit
+    if (!userTransaction)
+      return { userLatestReward, todayReward, daoDividends, daoPercent };
 
-    if (
-      start * 1000 <= latestReward.dateSendReward &&
-      end * 1000 >= latestReward.dateSendReward
-    ) {
-      todayReward = todayProfit;
-    }
+    [userLatestReward, todayReward] =
+      await this.profitSentService.findTodayProfitWithType(
+        type,
+        userTransaction
+      );
+
+    if (!userLatestReward)
+      return { userLatestReward, todayReward, daoDividends, daoPercent };
 
     daoPercent =
       AUTO_PROFIT_TYPE[type] ?? userLatestReward[REWARD_KEY_PERCENT_TYPE[type]];
 
     daoDividends = (userLatestReward[REWARD_KEY_TYPE[type]] * daoPercent) / 100;
     return {
-      latestReward,
       todayReward,
       daoDividends,
       daoPercent,
@@ -474,7 +456,7 @@ export class ProfitService {
           totalUserProfit: 0,
           totalWithdraw: 0,
           withdrawAvailable: 0,
-          dateReward: 0,
+          dateReward: null,
           todayReward: 0,
         };
       }
@@ -617,13 +599,12 @@ export class ProfitService {
       async (tempObj: any, type: PROFIT_TYPE) => {
         const total = await this.totalProfitByType(user, type);
 
-        let { todayReward } = await this.getRewardByType(user, type);
+        const { todayReward } = await this.getRewardByType(user, type);
         totalProfit.total += total;
         totalProfit.today += todayReward;
 
         const resolveObj = await tempObj; // wait for the previous obj done
 
-        if (total < todayReward) todayReward = total;
         return {
           ...resolveObj,
           [type]: {

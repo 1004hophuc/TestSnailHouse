@@ -1,4 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import BigNumber from 'bignumber.js';
@@ -54,7 +55,7 @@ export class DaoElementTransactionService {
     return totalCorkValue;
   }
 
-  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async getDAOElementTransactionJob() {
     try {
       console.log('Start DAO element transaction job ');
@@ -66,7 +67,7 @@ export class DaoElementTransactionService {
     }
   }
 
-  // @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async fetchRouter() {
     try {
       await this.getRouterTransaction();
