@@ -427,11 +427,40 @@ export class ProfitService {
       AUTO_PROFIT_TYPE[type] ?? userLatestReward[REWARD_KEY_PERCENT_TYPE[type]];
 
     daoDividends = (userLatestReward[REWARD_KEY_TYPE[type]] * daoPercent) / 100;
+
     return {
       todayReward,
       daoDividends,
       daoPercent,
       userLatestReward,
+    };
+  }
+
+  async setĐiểm() {
+    const amountPerUser = {
+      [PROFIT_TYPE.SWAP]: {
+        1: 0.5684832007,
+        2: 1.705449602,
+        3: 2.842416004,
+        4: 5.684832007,
+        5: 11.36966401,
+      },
+
+      [PROFIT_TYPE.MARKET]: {
+        1: 0.02643324364,
+        2: 0.07929973091,
+        3: 0.1321662182,
+        4: 0.2643324364,
+        5: 0.5286648727,
+      },
+
+      [PROFIT_TYPE.IDO]: {
+        1: 1.40456784,
+        2: 4.213703521,
+        3: 7.022839202,
+        4: 14.0456784,
+        5: 28.09135681,
+      },
     };
   }
 
@@ -481,32 +510,6 @@ export class ProfitService {
 
       const profitPerUser =
         daoProfit * (daoPercent / 100) * profitPercentPerTier[level];
-
-      const amountPerUser = {
-        [PROFIT_TYPE.SWAP]: {
-          1: 0.5684832007,
-          2: 1.705449602,
-          3: 2.842416004,
-          4: 5.684832007,
-          5: 11.36966401,
-        },
-
-        [PROFIT_TYPE.MARKET]: {
-          1: 0.02643324364,
-          2: 0.07929973091,
-          3: 0.1321662182,
-          4: 0.2643324364,
-          5: 0.5286648727,
-        },
-
-        [PROFIT_TYPE.IDO]: {
-          1: 1.40456784,
-          2: 4.213703521,
-          3: 7.022839202,
-          4: 14.0456784,
-          5: 28.09135681,
-        },
-      };
 
       const totalUserWithdrew = withdrawHistory.reduce(
         (accu, history) => (accu += history.amountWithdraw),

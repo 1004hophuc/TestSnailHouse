@@ -26,7 +26,7 @@ import { UtilitiesService } from '../utils/sleep-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const abiDecoder = require('abi-decoder');
-const DAO_TIER = [1, 2, 3, 4, 5];
+const DAO_TIER = [1, 3, 5, 10, 20];
 interface QueryTransMarket {
   isMarket?: boolean;
   address?: string;
@@ -130,19 +130,32 @@ export class TransactionsService {
   }
 
   async findDaoPercentPerTier(untilTime: number) {
+    // This code must not be deleted.
+    // Cause this time was hard code
+    // Dont worry, this is just for client UI
+    if (untilTime === 1660435200000)
+      return {
+        1: 0.0002662406816,
+        2: 0.0007987220447,
+        3: 0.001331203408,
+        4: 0.002662406816,
+        5: 0.005324813632,
+      };
+
     // Get all dao tier from 1 -> 5
     const daoPerTier = await Promise.all(
-      DAO_TIER.map((level) =>
+      DAO_TIER.map((point, index) =>
         this.findAllFilter({
           isStaked: true,
-          level,
+          level: index + 1,
           timestamp: { $lte: untilTime },
         })
       )
     );
 
     const pointPerTier = daoPerTier.map(
-      (totalDaoPerTierList, index) => totalDaoPerTierList.length * (index + 1)
+      (totalDaoPerTierList, index) =>
+        totalDaoPerTierList.length * DAO_TIER[index]
     );
 
     const totalPoint = pointPerTier.reduce(
@@ -153,7 +166,7 @@ export class TransactionsService {
     const percentPerMember = pointPerTier.reduce(
       (daoTierObj, point, index) => ({
         ...daoTierObj,
-        [DAO_TIER[index]]:
+        [index + 1]:
           // Dao point divide by totalPoint to get percent per tier
           // Percent per tier divide by dao member per tier
           point / totalPoint / (daoPerTier[index].length || 1),
