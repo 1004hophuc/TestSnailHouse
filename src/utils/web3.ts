@@ -1,9 +1,9 @@
-import configuration from '../config';
-import Web3 from 'web3';
 import Common from '@ethereumjs/common';
-import BigNumber from 'bignumber.js';
-import { MulticallAbi } from '../contract/Multicall';
 import { Interface } from '@ethersproject/abi';
+import BigNumber from 'bignumber.js';
+import Web3 from 'web3';
+import configuration from '../config';
+import { MulticallAbi } from '../contract/Multicall';
 
 const MULTICALL_ADDRESS = {
   56: '0x38ce767d81de3940CFa5020B55af1A400ED4F657',
@@ -56,6 +56,17 @@ export const fromWei = (number: number | string): string => {
     console.log('e:', e);
   }
 };
+
+export const isAddress = (address: string): boolean =>
+  Web3.utils.isAddress(address);
+
+export const getAddressFromSign = (messageHash: string, signature: string) => {
+  const web3 = getWeb3();
+  return web3.eth.accounts.recover(messageHash, signature);
+};
+
+export const toCheckSumAddress = (address: string): string =>
+  Web3.utils.toChecksumAddress(address);
 
 export const getMulticallContract = () => {
   const MulticallAddress = MULTICALL_ADDRESS[97];

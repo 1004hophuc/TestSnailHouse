@@ -1,4 +1,4 @@
-import { Controller, Body, Post, Get, Query, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { QueryTransactionDto } from './dto/query-transaction.dto';
 import { TransactionsService } from './transactions.service';
@@ -87,7 +87,7 @@ export class TransactionsController {
   }
 
   @Get('dao-per-tier')
-  findDaoPercentPerTier() {
-    return this.transactionsService.findDaoPercentPerTier(1659286800000);
+  findDaoPercentPerTier(@Query('timestamp') timestamp: number) {
+    return this.transactionsService.findDaoPercentPerTier(timestamp);
   }
 }

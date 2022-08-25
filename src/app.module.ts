@@ -13,11 +13,13 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AirdropsModule } from './airdrops/airdrops.module';
 import { DaoElementTransactionModule } from './dao-element-transaction/dao-element-transaction.module';
+import { FaqModule } from './faq/faq.module';
 import { HistoryModule } from './history/history.module';
 import { IdoNftModule } from './ido-nft/ido-nft.module';
 import { IdoTransactionModule } from './ido-transaction/ido-transaction.module';
 import { MailSubmitModule } from './mail-submit/mail-submit.module';
 import { NftModule } from './nft/nft.module';
+import { NoticeModule } from './notice/notice.module';
 import { ProfitMarketSentModule } from './profit-market-sent/profit-market-sent.module';
 import { ProfitSentModule } from './profit-sent/profit-sent.module';
 import { ProfitSwapSentModule } from './profit-swap-sent/profit-swap-sent.module';
@@ -25,6 +27,8 @@ import { ProfitWithdrawerModule } from './profit-withdrawer/profit-withdrawer.mo
 import { ProfitModule } from './profit/profit.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { StatisticModule } from './statistic/statistic.module';
+import { UserAnswerModule } from './user-answer/user-answer.module';
+import { UserAskModule } from './user-ask/user-ask.module';
 import { VotingModule } from './voting/voting.module';
 
 @Module({
@@ -69,6 +73,10 @@ import { VotingModule } from './voting/voting.module';
     ProfitSentModule,
     ProfitSwapSentModule,
     ProfitMarketSentModule,
+    FaqModule,
+    UserAskModule,
+    UserAnswerModule,
+    NoticeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

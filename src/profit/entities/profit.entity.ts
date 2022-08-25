@@ -1,5 +1,12 @@
 import { AbstractEntity } from 'src/common/entities';
-import { BeforeInsert, Column, Entity, Index, ObjectID, ObjectIdColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  Index,
+  ObjectID,
+  ObjectIdColumn,
+} from 'typeorm';
 
 export enum PROFIT_TYPE {
   IDO = 'ido',
@@ -30,6 +37,4 @@ export class Profit extends AbstractEntity {
 
   @Column()
   dexProfit: number;
-
-
 }
