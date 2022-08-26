@@ -260,8 +260,8 @@ export function getDateIntInterval(date: any): { start: number; end: number } {
 }
 
 export function getThisMonthInterval(): { start: number; end: number } {
-  const start = moment().startOf('months');
-  const end = start.clone().add(1, 'months');
+  const start = moment.utc().startOf('months');
+  const end = moment(start).endOf('month');
   return {
     start: start.valueOf() / 1000,
     end: end.valueOf() / 1000,

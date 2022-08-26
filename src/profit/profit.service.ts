@@ -406,7 +406,6 @@ export class ProfitService {
 
     if (!userProfit)
       return { userLatestReward, todayReward, daoDividends, daoPercent };
-
     const userTransaction = await this.transactionService.findOne({
       address: user,
     });
@@ -433,34 +432,6 @@ export class ProfitService {
       daoDividends,
       daoPercent,
       userLatestReward,
-    };
-  }
-
-  async setĐiểm() {
-    const amountPerUser = {
-      [PROFIT_TYPE.SWAP]: {
-        1: 0.5684832007,
-        2: 1.705449602,
-        3: 2.842416004,
-        4: 5.684832007,
-        5: 11.36966401,
-      },
-
-      [PROFIT_TYPE.MARKET]: {
-        1: 0.02643324364,
-        2: 0.07929973091,
-        3: 0.1321662182,
-        4: 0.2643324364,
-        5: 0.5286648727,
-      },
-
-      [PROFIT_TYPE.IDO]: {
-        1: 1.40456784,
-        2: 4.213703521,
-        3: 7.022839202,
-        4: 14.0456784,
-        5: 28.09135681,
-      },
     };
   }
 
@@ -743,78 +714,96 @@ export class ProfitService {
     return profitFromMonth;
   }
 
-  async initIDOData() {
-    const profits = await this.profitRepo.find({ type: PROFIT_TYPE.IDO });
+  // async initIDOData() {
+  //   const users = await this.transactionService.findAllFilter({
+  //     where: {
+  //       timestamp: { $lte: 1660575600000, $gte: 1660521600000 },
+  //       isStaked: true,
+  //     },
+  //   });
 
-    const users = await this.transactionService.findAllFilter({
-      where: {
-        timestamp: { $lt: 1660521600000 },
-        isStaked: true,
-      },
-    });
+  //   const swap = {
+  //     1: 0.5684832007,
+  //     2: 1.705449602,
+  //     3: 2.842416004,
+  //     4: 5.684832007,
+  //     5: 11.36966401,
+  //   };
 
-    const swap = {
-      1: 0.5684832007,
-      2: 1.705449602,
-      3: 2.842416004,
-      4: 5.684832007,
-      5: 11.36966401,
-    };
+  //   const market = {
+  //     1: 0.02643324364,
+  //     2: 0.07929973091,
+  //     3: 0.1321662182,
+  //     4: 0.2643324364,
+  //     5: 0.5286648727,
+  //   };
 
-    const market = {
-      1: 0.02643324364,
-      2: 0.07929973091,
-      3: 0.1321662182,
-      4: 0.2643324364,
-      5: 0.5286648727,
-    };
+  //   const ido = {
+  //     1: 1.40456784,
+  //     2: 4.213703521,
+  //     3: 7.022839202,
+  //     4: 14.0456784,
+  //     5: 28.09135681,
+  //   };
 
-    const ido = {
-      1: 1.40456784,
-      2: 4.213703521,
-      3: 7.022839202,
-      4: 14.0456784,
-      5: 28.09135681,
-    };
+  //   const profitLevelType = {
+  //     [PROFIT_TYPE.SWAP]: swap,
+  //     [PROFIT_TYPE.MARKET]: market,
+  //     [PROFIT_TYPE.IDO]: ido,
+  //   };
 
-    const resetData = {
-      amountProfit: 0,
-      weiAmountProfit: '0',
-      dexProfit: 0,
-    };
+  //   const dexProfit = {
+  //     [PROFIT_TYPE.IDO]: 5346.4,
+  //     [PROFIT_TYPE.SWAP]: 21352.22902,
+  //     [PROFIT_TYPE.MARKET]: 141.833233,
+  //   };
 
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i];
-      const { level, address } = user;
+  //   let listUsers = [];
+  //   for (let i = 0; i < users.length; i++) {
+  //     const user = users[i];
+  //     const { level, address } = user;
+  //     const TYPE_DATA = Object.keys(TYPE_LIST).reduce(
+  //       (temp, type) => ({
+  //         ...temp,
+  //         [type]: {
+  //           user: address,
+  //           amountProfit: profitLevelType[type]?.[level] ?? 0,
+  //           weiAmountProfit: toWei(profitLevelType[type]?.[level] ?? 0),
+  //           type,
+  //           dexProfit: dexProfit[type] ?? 0,
+  //         },
+  //       }),
+  //       {}
+  //     );
 
-      await Promise.all([
-        this.profitRepo.update(
-          { user: address, type: PROFIT_TYPE.IDO },
-          {
-            amountProfit: ido[level],
-            weiAmountProfit: toWei(ido[level]),
-            dexProfit: 5346.4,
-          }
-        ),
-        this.profitRepo.update(
-          { user: address, type: PROFIT_TYPE.SWAP },
-          {
-            amountProfit: swap[level],
-            weiAmountProfit: toWei(swap[level]),
-            dexProfit: 21352.22902,
-          }
-        ),
-        this.profitRepo.update(
-          { user: address, type: PROFIT_TYPE.MARKET },
-          {
-            amountProfit: market[level],
-            weiAmountProfit: toWei(market[level]),
-            dexProfit: 141.833233,
-          }
-        ),
-      ]);
-    }
-  }
+  //     const profitData = Object.values(TYPE_DATA).map((profit) => profit);
+  //     const existProfits = await this.profitRepo.find({ user: address });
+
+  //     if (existProfits.length === 0) {
+  //       listUsers = [...listUsers, ...profitData];
+  //       continue;
+  //     }
+  //     for (let j = 0; j < existProfits.length; j++) {
+  //       const existUser = existProfits[j];
+  //       const { type, user } = existUser;
+
+  //       if (!dexProfit[type]) continue;
+
+  //       const newData = {
+  //         amountProfit: +TYPE_DATA[type].amountProfit + existUser.amountProfit,
+  //         weiAmountProfit: toWei(
+  //           +TYPE_DATA[type].amountProfit + existUser.amountProfit
+  //         ),
+  //         dexProfit: TYPE_DATA[type].dexProfit + existUser.dexProfit,
+  //       };
+
+  //       await this.profitRepo.update({ user, type }, newData);
+  //     }
+  //   }
+
+  //   // return listUsers;
+  //   if (listUsers.length > 0) await this.profitRepo.save(listUsers);
+  // }
 
   async resetMarket(type: PROFIT_TYPE) {
     const allMarketProfits = await this.profitRepo.find({

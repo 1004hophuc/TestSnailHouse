@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+
 import { CreateNoticeDto, NoticeType } from './dto/create-notice.dto';
 import { QueryDto } from './dto/query-notice.dto';
 import { UpdateNoticeDto } from './dto/update-notice.dto';

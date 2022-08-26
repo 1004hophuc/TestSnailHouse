@@ -1,17 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
-import { ProfitService } from './profit.service';
 import { CreateProfitDto } from './dto/create-profit.dto';
 import { UpdateProfitDto } from './dto/update-profit.dto';
 import { PROFIT_TYPE } from './entities/profit.entity';
+import { ProfitService } from './profit.service';
 
 @Controller('profit')
 export class ProfitController {
@@ -65,6 +65,6 @@ export class ProfitController {
 
   @Get('initIDO')
   initIdo() {
-    return this.profitService.initIDOData();
+    // return this.profitService.initIDOData();
   }
 }

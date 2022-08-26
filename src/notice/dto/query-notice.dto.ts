@@ -6,6 +6,7 @@ import {
   IsPositive,
   IsString,
 } from 'class-validator';
+import { NoticeType } from './create-notice.dto';
 
 export enum FilterType {
   TITLE = 'title',
@@ -31,5 +32,9 @@ export class QueryDto {
 
   @IsOptional()
   @IsString()
-  filter: string;
+  filter?: string;
+
+  @IsOptional()
+  @IsEnum(NoticeType)
+  type?: NoticeType;
 }

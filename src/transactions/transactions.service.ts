@@ -133,7 +133,7 @@ export class TransactionsService {
     // This code must not be deleted.
     // Cause this time was hard code
     // Dont worry, this is just for client UI
-    if (untilTime === 1660435200000)
+    if (untilTime === 1660575600000)
       return {
         1: 0.0002662406816,
         2: 0.0007987220447,

@@ -24,9 +24,4 @@ export class CreateNoticeDto {
   @IsNotEmpty()
   @IsEnum(NoticeType)
   type: NoticeType;
-
-  @IsOptional()
-  @IsString()
-  @IsUrl()
-  thumbnail?: string;
 }

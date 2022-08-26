@@ -69,7 +69,7 @@ export class NoticeService {
 
     const [notice, total] = await this.noticeRepo.findAndCount({
       skip: page ? page - 1 : 0,
-      take: limit ?? 20,
+      take: (+page - 1) * limit || 20,
 
       where,
     });
