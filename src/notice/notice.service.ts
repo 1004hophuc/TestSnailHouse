@@ -45,7 +45,13 @@ export class NoticeService {
   }
 
   async findAll(queryDto: QueryDto) {
-    const { page, limit, filter, filterType } = queryDto;
+    const { page, limit, filter, filterType, type, date } = queryDto;
+
+    const whereType = type
+      ? {
+          type: type,
+        }
+      : {};
 
     const where =
       filter && filterType
@@ -64,14 +70,19 @@ export class NoticeService {
                     : undefined,
               },
             ],
+            ...whereType,
           }
-        : {};
+        : {
+            ...whereType,
+          };
 
     const [notice, total] = await this.noticeRepo.findAndCount({
       skip: page ? page - 1 : 0,
-      take: (+page - 1) * limit || 20,
-
+      take: limit,
       where,
+      order: {
+        createdAt: date ?? 'DESC',
+      },
     });
 
     return { data: notice, total };
@@ -98,8 +109,10 @@ export class NoticeService {
     return notice;
   }
 
-  update(id: number, updateNoticeDto: UpdateNoticeDto) {
-    return `This action updates a #${id} notice`;
+  async update(id: string, updateNoticeDto: UpdateNoticeDto) {
+    const updatedNotice = await this.noticeRepo.update(id, updateNoticeDto);
+
+    return updatedNotice;
   }
 
   remove(id: string) {

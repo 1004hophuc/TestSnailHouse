@@ -33,11 +33,6 @@ export class NoticeController {
     return this.noticeService.findEveryType();
   }
 
-  @Get('with-type')
-  findWithType(@Query('type') type: NoticeType) {
-    return this.noticeService.findWithType(type);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.noticeService.findOne(id);
@@ -45,7 +40,7 @@ export class NoticeController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateNoticeDto: UpdateNoticeDto) {
-    return this.noticeService.update(+id, updateNoticeDto);
+    return this.noticeService.update(id, updateNoticeDto);
   }
 
   @Delete(':id')

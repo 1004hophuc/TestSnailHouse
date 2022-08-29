@@ -6,6 +6,8 @@ import {
   IsPositive,
   IsString,
 } from 'class-validator';
+import { Order } from 'src/common/dto/page-options.dto';
+import { FindOneOptions, OrderByCondition } from 'typeorm';
 import { NoticeType } from './create-notice.dto';
 
 export enum FilterType {
@@ -37,4 +39,8 @@ export class QueryDto {
   @IsOptional()
   @IsEnum(NoticeType)
   type?: NoticeType;
+
+  @IsOptional()
+  @IsEnum(Order)
+  date?: Order;
 }
