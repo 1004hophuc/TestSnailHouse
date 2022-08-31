@@ -55,28 +55,28 @@ export class DaoElementTransactionService {
     return totalCorkValue;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async getDAOElementTransactionJob() {
-    try {
-      console.log('Start DAO element transaction job ');
-      await this.getLaunchpadTransaction();
-      console.log('End DAO element transaction job ');
-    } catch (error) {
-      console.log(error?.response?.error);
-      throw error;
-    }
-  }
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // async getDAOElementTransactionJob() {
+  //   try {
+  //     console.log('Start DAO element transaction job ');
+  //     await this.getLaunchpadTransaction();
+  //     console.log('End DAO element transaction job ');
+  //   } catch (error) {
+  //     console.log(error?.response?.error);
+  //     throw error;
+  //   }
+  // }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  async fetchRouter() {
-    try {
-      await this.getRouterTransaction();
-      await this.getMarketTransaction();
-    } catch (error) {
-      console.log(error?.response?.error);
-      throw error;
-    }
-  }
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async fetchRouter() {
+  //   try {
+  //     await this.getRouterTransaction();
+  //     await this.getMarketTransaction();
+  //   } catch (error) {
+  //     console.log(error?.response?.error);
+  //     throw error;
+  //   }
+  // }
 
   async deleteRouterTransaction() {
     await this.daoElementTransactionReposity.delete({
@@ -174,13 +174,16 @@ export class DaoElementTransactionService {
           action: 'txlist',
           module: 'account',
           sort: 'desc',
-          startblock: latestMarketTransaction[0]?.block_number || 0,
+          startblock: 0,
+          // startblock: latestMarketTransaction[0]?.block_number || 0,
         },
       });
 
+
+      console.log('test console log value: ', allTransactions.data.result);
       const marketTransactions = allTransactions.data.result.filter(
         (transaction) =>
-          transaction.functionName === 'accept(uint256 acceptNonce)' &&
+          transaction.methodId === '0x19b05f49' &&
           transaction.isError == 0
       );
 
@@ -195,15 +198,16 @@ export class DaoElementTransactionService {
         );
 
         const values = await this.getTotalValueFromTxReceipt(txReceipt);
+        // console.log('test console log value: ', values);
 
-        const insertData = {
-          txhash: transaction.hash,
-          type: ElementType.MARKET,
-          block_number: transaction.blockNumber,
-          timestamp: +transaction.timeStamp,
-          from_address: transaction.from,
-          to_address: transaction.to,
-        };
+        // const insertData = {
+        //   txhash: transaction.hash,
+        //   type: ElementType.MARKET,
+        //   block_number: transaction.blockNumber,
+        //   timestamp: +transaction.timeStamp,
+        //   from_address: transaction.from,
+        //   to_address: transaction.to,
+        // };
 
         let totalValue = 0;
 
@@ -216,25 +220,25 @@ export class DaoElementTransactionService {
         // 1% of total accept offer value
         const profitDev = (totalValue * 1) / 100;
         let corkValue = profitDev;
-        if (value.unit_token_address.toLowerCase() === busdAddress) {
-          corkValue = await this.tokenPriceInCork(
-            web3.utils.toWei(profitDev + ''),
-            corkPrice
-          );
-        }
+        // if (value.unit_token_address.toLowerCase() === busdAddress) {
+        //   corkValue = await this.tokenPriceInCork(
+        //     web3.utils.toWei(profitDev + ''),
+        //     corkPrice
+        //   );
+        // }
 
         // await this.profitService.calculateMarketProfit(
         //   +corkValue,
         //   insertData.timestamp
         // );
 
-        await this.daoElementTransactionReposity.insert({
-          ...insertData,
-          value: totalValue,
-          unit_token_address: value.unit_token_address,
-          unit_token_name: value.unit_token_name,
-          corkValue: +corkValue,
-        });
+        // await this.daoElementTransactionReposity.insert({
+        //   ...insertData,
+        //   value: totalValue,
+        //   unit_token_address: value.unit_token_address,
+        //   unit_token_name: value.unit_token_name,
+        //   corkValue: +corkValue,
+        // });
       }
 
       console.log('DONE MARKET JOB !');
@@ -344,6 +348,8 @@ export class DaoElementTransactionService {
       const transferTransaction = process.env.TRANSFER_TRANSACTION;
       const busdAddress = process.env.BUSD_TOKEN;
       const corkAddress = process.env.CORK_TOKEN;
+      console.log("busdAddress: ", busdAddress);
+      console.log("corkAddress: ", corkAddress);
       const web3 = getWeb3();
       const result = [];
       await Promise.map(transaction.logs, async (log) => {
@@ -352,21 +358,22 @@ export class DaoElementTransactionService {
           return;
         }
         const topics = log.topics;
-
+        console.log('log: ', log);
+        
         const parsedTopics = await this.parseLogTopic(topics);
         let i = 0;
         if (
           parsedTopics.indexOf(ownerAddress.toLowerCase()) !== '-1' &&
           topics.indexOf(transferTransaction) !== -1
-        ) {
-          i++;
-
-          let decodeData;
-          try {
-            decodeData = await web3.eth.abi.decodeParameter(
-              'uint256',
-              log.data
-            );
+          ) {
+            i++;
+            
+            let decodeData;
+            try {
+              decodeData = await web3.eth.abi.decodeParameter(
+                'uint256',
+                log.data
+                );
           } catch (error) {
             return;
           }
@@ -384,6 +391,7 @@ export class DaoElementTransactionService {
           }
         }
       });
+      console.log('resultValueDev: ', result);
       return result;
     } catch (error) {
       throw error;

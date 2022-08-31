@@ -12,8 +12,8 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     app.use(json({ limit: '50mb' }));
     app.use(urlencoded({ extended: true, limit: '50mb' }));
-    await app.listen(3001);
-    console.log('App is listened on : 3001');
+    await app.listen(4001);
+    console.log('App is listened on : 4001');
   } catch (e) {
     console.log(e);
   }

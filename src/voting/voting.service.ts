@@ -63,17 +63,17 @@ export class VotingService {
     return vote;
   }
   // EVERY 40 SEC
-  @Cron('*/40 * * * * *')
-  async getVotingTransactionJob() {
-    try {
-      console.log('Start Voting transaction job ');
-      await this.crawlVotingTransaction();
-      console.log('End Voting transaction job ');
-    } catch (error) {
-      console.log(error?.response?.error);
-      throw error;
-    }
-  }
+  // @Cron('*/40 * * * * *')
+  // async getVotingTransactionJob() {
+  //   try {
+  //     console.log('Start Voting transaction job ');
+  //     await this.crawlVotingTransaction();
+  //     console.log('End Voting transaction job ');
+  //   } catch (error) {
+  //     console.log(error?.response?.error);
+  //     throw error;
+  //   }
+  // }
 
   async crawlVotingTransaction() {
     try {

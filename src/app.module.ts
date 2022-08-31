@@ -40,14 +40,14 @@ import { VotingModule } from './voting/voting.module';
     }),
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      host: process.env.MONGO_HOST,
-      port: +process.env.MONGO_PORT,
-      username: process.env.MONGO_USERNAME,
-      password: process.env.MONGO_PASSWORD,
-      database: process.env.MONGO_DB,
+      url: 'mongodb+srv://Hophuc1004:Phuc101297@cluster0.nwtof.mongodb.net/snailhousedaolocal?retryWrites=true&w=majority',
+      // host: process.env.MONGO_HOST,
+      // port: +process.env.MONGO_PORT,
+      // username: process.env.MONGO_USERNAME,
+      // password: process.env.MONGO_PASSWORD,
       // database: process.env.MONGO_DB,
       //process.env.MONGO_DB,
-      entities: [User, Transaction],
+      // entities: [User, Transaction],
       // synchronize: true,
       // ssl: true,
       // extra: { authSource: 'admin' },
@@ -55,7 +55,7 @@ import { VotingModule } from './voting/voting.module';
       logging: true,
     }),
 
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
     UsersModule,
     TransactionsModule,
     NftModule,
@@ -83,9 +83,10 @@ import { VotingModule } from './voting/voting.module';
 })
 export class AppModule {
   constructor(private connection: Connection) {
-    console.log('process.env.MONGO_DB: ', process.env.MONGO_DB);
+    // console.log('process.env.MONGO_DB: ', process.env.MONGO_DB);
 
-    console.log('process.env.MONGO_USERNAME: ', process.env.MONGO_USERNAME);
-    console.log('process.env.MONGO_PASSWORD: ', process.env.MONGO_PASSWORD);
+    // console.log('process.env.MONGO_USERNAME: ', process.env.MONGO_USERNAME);
+    // console.log('process.env.MONGO_PASSWORD: ', process.env.MONGO_PASSWORD);
+    console.log('snailhousedao-be run on port 4001');
   }
 }

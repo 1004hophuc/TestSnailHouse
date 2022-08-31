@@ -255,25 +255,25 @@ export class TransactionsService {
     } catch (e) {}
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
-  async handleCron() {
-    if (this?.['IS_IN_CRONJOB']) {
-      console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
-      return;
-    }
-    this['IS_IN_CRONJOB'] = true;
+  // @Cron(CronExpression.EVERY_30_SECONDS)
+  // async handleCron() {
+  //   if (this?.['IS_IN_CRONJOB']) {
+  //     console.log(`\n\n====SKIPPP THIS ROUND at ${getTime(new Date())}===\n\n`);
+  //     return;
+  //   }
+  //   this['IS_IN_CRONJOB'] = true;
 
-    try {
-      console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
-      await this.fetchTrans();
-      // await this.fetchStakingTime();
-    } catch (e) {
-      console.log('cronTransaction failed: ', e);
-    } finally {
-      console.log('\n\n====END THIS ROUND===\n\n');
-      this['IS_IN_CRONJOB'] = false;
-    }
-  }
+  //   try {
+  //     console.log(`\n\n====START THIS ROUND at ${getTime(new Date())}===\n\n`);
+  //     await this.fetchTrans();
+  //     // await this.fetchStakingTime();
+  //   } catch (e) {
+  //     console.log('cronTransaction failed: ', e);
+  //   } finally {
+  //     console.log('\n\n====END THIS ROUND===\n\n');
+  //     this['IS_IN_CRONJOB'] = false;
+  //   }
+  // }
 
   async transactionJob(startBlock, endBlock, name = 'Buy') {
     const web3 = getWeb3();
